@@ -1,0 +1,396 @@
+﻿@model BOL.Site.Models.Autotest
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutSpecial.cshtml";
+}
+
+<style>
+    .meter {
+        height: 20px; /* Can be anything */
+        position: relative;
+        margin-bottom: 40px;
+        border: medium none;
+        -moz-border-radius: 2px;
+        -webkit-border-radius: 2px;
+        border-radius: 2px;
+        background-color: #f9f9f9;
+    }
+
+    .meter_span_1 {
+        cursor: pointer;
+        display: block;
+        height: 100%;
+        -webkit-border-top-left-radius: 2px;
+        -webkit-border-bottom-left-radius: 2px;
+        -moz-border-radius-topleft: 2px;
+        -moz-border-radius-bottomleft: 2px;
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+        background-color: #449400;
+        background-image: -webkit-gradient( linear, left bottom, left top, color-stop(0, #449400), color-stop(1, #85d900) );
+        background-image: -moz-linear-gradient( center bottom, #449400 37%, #85d900 69% );
+        position: relative;
+        overflow: hidden;
+    }
+
+    .meter_span_4 {
+        cursor: pointer;
+        display: block;
+        height: 100%;
+        -webkit-border-top-left-radius: 2px;
+        -webkit-border-bottom-left-radius: 2px;
+        -moz-border-radius-topleft: 2px;
+        -moz-border-radius-bottomleft: 2px;
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+        background-color: #d1000a;
+        background-image: -webkit-gradient( linear, left bottom, left top, color-stop(0, #d1000a), color-stop(1, #FF4500) );
+        background-image: -moz-linear-gradient( center bottom, #d1000a 37%, #FF4500 69% );
+        position: relative;
+        overflow: hidden;
+    }
+
+    .meter_span_2 {
+        cursor: pointer;
+        display: block;
+        height: 100%;
+        -webkit-border-top-left-radius: 2px;
+        -webkit-border-bottom-left-radius: 2px;
+        -moz-border-radius-topleft: 2px;
+        -moz-border-radius-bottomleft: 2px;
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+        background-color: #f36d0a;
+        background-image: -webkit-gradient( linear, left bottom, left top, color-stop(0, #f36d0a), color-stop(1, #f1a165) );
+        background-image: -moz-linear-gradient( center bottom, #f36d0a 37%, #f1a165 69% );
+        position: relative;
+        overflow: hidden;
+        box-shadow: 2px 0px 5px -2px #D1CFCF;
+    }
+
+    .meter_span_3 {
+        cursor: pointer;
+        display: block;
+        height: 100%;
+        -webkit-border-top-left-radius: 2px;
+        -webkit-border-bottom-left-radius: 2px;
+        -moz-border-radius-topleft: 2px;
+        -moz-border-radius-bottomleft: 2px;
+        border-top-left-radius: 2px;
+        border-bottom-left-radius: 2px;
+        background-color: #f9f9f9;
+        position: relative;
+        overflow: hidden;
+        box-shadow: inset 0px 3px 5px -2px #D1CFCF;
+        border-bottom: solid 1px #e2e2e2;
+        border-right: solid 1px #e2e2e2;
+    }
+
+    .check {
+        float: right;
+        width: 15px;
+        height: 15px;
+        border: 1px #e2e2e2 solid;
+        display: block;
+    }
+
+    .check_in {
+        cursor: pointer;
+        position: absolute;
+        margin-top: -25px;
+        margin-left: -10px;
+        font-size: 40px;
+        font-family: 'WebSymbolsLigaRegular';
+        text-rendering: optimizeLegibility;
+        cursor: pointer;
+        position: absolute;
+        font-size: 43px;
+        font-family: 'WebSymbolsLigaRegular';
+        text-rendering: optimizeLegibility;
+    }
+    .negative {
+        color: #d1000a;
+        margin-top: -21px;
+        margin-left: -13px;
+    }
+
+    .positive {
+        color: #6dac00;
+    }
+
+    .round_big {
+        float: left;
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+        margin-right: 10px;
+        margin-top: 3px;
+    }
+    .round_small {
+        float: left;
+        border-radius: 50%;
+        height: 20px;
+        width: 20px;
+        margin-right: 10px;
+        margin-top: 3px;
+    }
+
+    .bol-spinner_left-position_mini .spinnerAtm {
+        top: 16px !important;
+        left: 16px !important;
+    }
+
+    .bol-spinner_left-position_mini .spinnerM {
+        top: 0px !important;
+        left: 10px !important;
+    }
+    
+    .negative_background {
+        background-color: #d1000a;
+    }
+
+    .positive_background {
+        background-color: #6dac00;
+    }
+
+    .round_big.negative_background {
+        cursor: pointer;
+    }
+    .background_table {
+        background-color: #eefcfd;
+    }
+
+    tbody.table_error td {
+        padding-bottom: 20px;
+    }
+
+    .black_text {
+        color: #000;
+    }
+   
+</style>
+
+<section class="dashboard" data-ng-app="qaInfra">
+
+    <div class="m-box">
+        <div class="box box-page-name">
+            <h1 class="name-page">Результаты прохождения автотестов</h1>
+        </div>
+    </div>
+
+    <div class="box" data-ng-controller="autotestResultsCtrl as res">
+        <div data-bol-spinner data-display="{{res.mainSpinner}}">
+            <div class="dn" data-ng-class="{ dn: !res.isload }">
+
+                <div class="input-block" style="margin-bottom: 30px;">
+                    <div class="custom-select m-small custom-select__bigger fl first">
+                        <select data-ng-model="res.result" data-ng-options="c.DisplayName for c in res.results" data-custom-select></select>
+                    </div>
+                    <button class="btn btn__positive last" data-ng-click="res.loadResult()" data-ng-class="{'btn__preload': res.preloadGet}" style="margin-left: 20px">
+                        <span class="btn-in">Выгрузить тесты</span>
+                    </button>
+                </div>
+ 
+                <div class="m-box" data-ng-if="res.caseSelected">
+                    <span data-ng-if="!res.IsChecked" class="round_small negative_background"></span>
+                    <span data-ng-if="res.IsChecked" class="round_small positive_background"></span>
+                    
+                    <h3>
+                        <span data-ng-bind="res.DisplayName"></span>
+
+                        <span class="btn btn__clear btn__secondary ng-scope ng-isolate-scope" data-ng-click="res.deleteParallel()" data-ng-class="{'btn__preload': res.Parallel.preloadDelete}" style="float: right;">
+                            <span class="btn-in" style="font-family: 'Proxima Nova', Arial, Tahoma, Verdana, sans-serif;">Удалить прогон</span>
+                        </span>
+
+                        <div style="float: right;" data-ng-if="!!res.Parallel.TimeEnd">
+                            <span class="dropdown link_secondary" style="margin-right: 5px;">
+                                <span class="dropdown_name link_secondary" data-dropdown-caller="changeAddress">
+                                    <span class="btn btn__clear btn__secondary"><span class="btn-in" style="font-family: 'Proxima Nova', Arial, Tahoma, Verdana, sans-serif;">Переместить скрины</span></span>
+                                </span>
+                            </span>
+
+                            <dropdown id="changeAddress" data-noposition="true" style="top: 10px;">
+                                <form name="changeAddressInput">
+
+                                    <h4>
+                                        Чтобы перенести скрины в другую папку, укажите удаленный адрес ввиде: \\IPv4\путь\ (путь должен быть расшарен для всех) <br /><br />
+                                        Текущий адрес: {{ res.Parallel.ScreenPath }}
+                                    </h4>
+                                    <div>
+                                        <div class="input-block ">
+                                            <input type="text" name="address" data-ng-model="res.Parallel.NewScreenPath.Value" class="t-input t-input__big" autocomplete="off">
+                                            <span class="ng-error" data-ng-if="!res.Parallel.NewScreenPath.Valid" data-ng-bind="res.Parallel.NewScreenPath.invalidText"></span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <button class="btn btn__positive" data-ng-click="res.changeParallelAddress()" data-ng-class="{disable: !res.isValidPath(), 'btn__preload': res.Parallel.NewScreenPath.preloadSave}" type="submit">
+                                            <span class="btn-in">Сохранить</span>
+                                        </button>
+
+                                        <span class="btn btn__clear" data-ng-click="res.closeDropdownForm();">
+                                            <span class="btn-in">Отмена</span>
+                                        </span>
+                                    </div>
+                                </form>
+                            </dropdown>
+                        </div>
+
+                        <span class="btn btn__clear btn__secondary ng-scope ng-isolate-scope" data-ng-click="res.updateModel()" data-ng-class="{'btn__preload': res.preloadUpdate }" style="float: right; margin-right: 5px;" data-ng-if="!!!res.Parallel.TimeEnd">
+                            <span class="btn-in" style="font-family: 'WebSymbolsLigaRegular';">&#0033;</span>
+                        </span>
+                    </h3>
+                    
+                    <div class="meter">
+                        <span class="meter_span_3" style="width: 100%;" title="{{res.Parallel.TestsCount - res.Parallel.TestsBegin}}"></span>    
+                        <span class="meter_span_2" data-ng-style="{ 'width': (res.Parallel.TestsBegin / res.Parallel.TestsCount * 100) + '%', 'top': '-20px' }" title="{{res.Parallel.TestsBegin - res.Parallel.TestsEnd}}"></span>
+                        <span class="meter_span_1" data-ng-style="{ 'width': (res.Parallel.TestsEnd / res.Parallel.TestsCount * 100) + '%', 'top': '-40px' }" title="{{res.Parallel.TestsEnd - res.Parallel.TestsFailed}}"></span>
+                        <span class="meter_span_4" data-ng-style="{ 'width': (res.Parallel.TestsFailed / res.Parallel.TestsCount * 100) + '%', 'top': '-60px' }" title="{{res.Parallel.TestsFailed}}"></span>
+                    </div>
+                    
+                    <div class="m-small" style="float: left;">
+                        <bol-tabs data-ng-model="res.ShowErrorType">
+                            <tab data-title="Все ({{ res.FilterData.All }})" data-model-value="All"></tab>
+                            <tab data-title="Проверенные ({{ res.FilterData.Checked }})" data-model-value="Checked"></tab>
+                            <tab data-title="Непроверенные ({{ res.FilterData.NotChecked }})" data-model-value="NotChecked" data-is-default="true"></tab>
+                        </bol-tabs>
+                    </div>
+                    
+                    <div style ="float: left; margin-left: 5px;">
+                        <span class="btn btn__clear btn__secondary ng-scope ng-isolate-scope" data-ng-click="res.sortTests(true)" data-ng-class="{'btn__preload': res.preloadSort }" data-ng-if="!!!res.sorted">
+                            <span class="btn-in" style="font-family: 'WebSymbolsLigaRegular';">&#203;</span>
+                        </span>
+
+                        <span class="btn btn__clear btn__secondary ng-scope ng-isolate-scope" data-ng-click="res.sortTests(false)" data-ng-class="{'btn__preload': res.preloadSort }" data-ng-if="!!res.sorted">
+                            <span class="btn-in" style="font-family: 'WebSymbolsLigaRegular';">&#200;</span>
+                        </span>
+                    </div>
+                    
+                    
+                    <div data-ng-if="res.ownersList.length > 0" style="margin-top: 20px;">
+                        <bol-tabs class="nav-tabs" data-ng-model="res.tabValue" data-update-value="res.updateValue">
+                            <tab data-ng-repeat="(key, owner) in res.ownersList track by owner.OwnerName" data-title="{{ owner.OwnerName + (owner.IsChecked ? ' (Ok)' : ' (notOk)') }}" data-exists="res.existsOwner(key, owner)" data-model-value="{{owner.OwnerName}}" data-handler="res.showTests(owner)">
+                                <div data-ng-repeat="item in owner.tests track by item.TestId">
+                                    <div data-ng-if="(!!item.IsChecked && res.ShowErrorType == 'Checked') || (!!!item.IsChecked && res.ShowErrorType == 'NotChecked') || res.ShowErrorType == 'All'">
+                                        <table style="width: 100%">
+                                            <tbody>
+                                                <tr>
+                                                    <td style="vertical-align: middle; width: 20px;">
+                                                        <span data-ng-if="item.IsChecked && !item.preloadCheck" class=" round_big positive_background"></span>
+
+                                                        <span data-ng-click="res.markCheckTest(item)" data-ng-if="!item.IsChecked">
+                                                            <span class=" round_big negative_background" data-ng-if="!item.preloadCheck"></span>
+                                                        </span>
+                                                        
+                                                        <span class="round_big" data-ng-if="item.preloadCheck">
+                                                            <span class="bol-spinner bol-spinner_left-position_mini" data-bol-spinner data-options='{"zIndex":1}'
+                                                                  data-display="{{item.preloadCheck}}"
+                                                                  data-type="atm"></span>
+                                                        </span>
+                                                    </td>
+                                                    <td style="vertical-align: middle;">
+                                                        <a data-ng-click="res.showErrors(item)" style="font-size: 18px;">
+                                                            <span data-ng-bind-html="res.getDisplayNameTest(item)" style="color: inherit;"></span>
+                                                            <span data-ng-if="!item.ShowErrors" style="color: inherit; font-family: 'WebSymbolsLigaRegular'; margin-left: 5px;">&#0123;</span>
+                                                            <span data-ng-if="item.ShowErrors" style="color: inherit; font-family: 'WebSymbolsLigaRegular'; margin-left: 5px;">&#0125;</span>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+
+                                        <div data-ng-if="item.ShowErrors">
+                                            <div class="box">
+                                                <div data-ng-if="item.errors.length > 0">
+                                                    <table style="width: 100%;">
+                                                        <tbody data-ng-repeat="error in item.errors track by error.ErrorId" ng-class-odd="'background_table'" class="table_error">
+                                                            <tr>
+                                                                <td style="vertical-align: middle; width: 2%; padding-right: 10px; padding-left: 15px; ">
+                                                                    <span data-ng-click="res.markCheckError(error)" data-ng-if="!error.IsChecked && !error.preloadCheck" class="check">
+                                                                        <span class="check_in negative">&#206;</span>
+                                                                    </span>
+                                                                    <span data-ng-click="res.markUnCheckError(error)" data-ng-if="error.IsChecked && !error.preloadCheck" class="check">
+                                                                        <span class="check_in positive">õ</span>
+                                                                    </span>
+                                                                    <span data-ng-if="error.preloadCheck">
+                                                                        <span class="bol-spinner bol-spinner_left-position_mini" data-bol-spinner data-options='{"zIndex":1}'
+                                                                              data-display="{{error.preloadCheck}}"
+                                                                              data-type="mini"></span>
+                                                                    </span>
+                                                                </td>
+                                                                <td data-ng-if="!!error.Line" style=" vertical-align: middle; width: 18%;">
+                                                                    Строка: <strong data-ng-bind-html="error.Line" style="display: inline"></strong>
+                                                                </td>
+                                                                <td data-ng-if="!!!error.Line" style="vertical-align: middle; width: 18%;">
+                                                                    Строка не указана
+                                                                </td>
+                                                                <td data-ng-if="!!error.Type" style="vertical-align: middle; width: 20%;">
+                                                                    <span data-ng-bind="error.Type"></span>
+                                                                </td>
+                                                                <td data-ng-if="!!!error.Type" style="vertical-align: middle; width: 20%;">
+                                                                    Тип не указан
+                                                                </td>
+                                                                <td data-ng-if="!!error.Bug" style="vertical-align: middle; width: 20%;">
+                                                                    <span data-ng-bind-html="error.Bug"></span>
+                                                                </td>
+                                                                <td data-ng-if="!!!error.Bug" style="vertical-align: middle; width: 20%;">
+                                                                    Баг не указан
+                                                                </td>
+                                                                <td data-ng-if="!!error.Time" style="vertical-align: middle; width: 20%;">
+                                                                    <span data-ng-bind="res.getDate(error.Time, true)"></span>
+                                                                </td>
+                                                                <td data-ng-if="!!!error.Time" style="vertical-align: middle; width: 20%;">
+                                                                    Время не указано
+                                                                </td>
+                                                                <td data-ng-if="!!error.ScreenPath" style="vertical-align: middle; width: 20%; min-width: 185px; ">
+                                                                    <span class="btn" data-ng-click="res.loadScreen(error)" data-ng-class="{'btn__preload': error.preloadScreen}">
+                                                                        <span class="btn-in">Посмотреть скрин</span>
+                                                                    </span>
+                                                                </td>
+                                                                <td data-ng-if="!!!error.ScreenPath" style="vertical-align: middle; width: 20%; min-width: 185px;">
+                                                                    Путь к скрину не указан
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td colspan="5">
+                                                                    <span data-ng-bind-html="error.Text"></span>
+                                                                    <br/>
+                                                                    <span data-ng-bind-html="error.GuidText" style="cursor: pointer;"></span>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                        <tr>
+                                                            <td colspan="6"><hr style="margin: 0;" /></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                                <div data-ng-if="item.Errors.length == 0">
+                                                    <table style="width: 100%;">
+                                                        <tbody>
+                                                            <tr>
+                                                                <td></td>
+                                                                <td>
+                                                                    <h4>
+                                                                        У данного теста нет записей об ошибках
+                                                                    </h4>
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p data-ng-if="owner.Tests.length == 0">Список тестов данного тестировщика пустой</p>
+                                <p data-ng-if="res.ownerFilter(owner)">Список тестов для данного фильтра пустой</p>
+                            </tab>
+                        </bol-tabs>
+                    </div>
+                    <p data-ng-if="res.ownersList.length == 0">Список тестов данного запуска пустой</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
