@@ -1,0 +1,17 @@
+﻿using System;
+using NUnit.Framework;
+
+namespace AutoTest.Others
+{
+    class NewGuid
+    {
+        [Test]
+        public void Test()
+        {
+            for (int i = 1; i <= 10; i++)
+            {
+                Console.WriteLine(Guid.NewGuid().ToString().ToUpper());
+            }
+        }
+    }
+}
