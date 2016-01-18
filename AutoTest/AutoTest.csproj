@@ -187,7 +187,7 @@
     <Content Include="FilesToShare\getPath.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="FilesToShare\selenium-server-standalone-2.47.1.jar">
+    <Content Include="FilesToShare\selenium-server-standalone-2.48.2.jar">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="helpers\javascripts\ScrollToView.js" />
