@@ -78,7 +78,7 @@ namespace AutoTest.helpers
                                 _sel.TouchWebDriver();
 
                             if (time.Elapsed.TotalSeconds > ParametersInit.AjaxTimeOut)
-                                _sel.BackTrace("SQL запрос " + id + " длился более " + ParametersInit.AjaxTimeOut + " секунд",
+                                _sel.Error("SQL запрос " + id + " длился более " + ParametersInit.AjaxTimeOut + " секунд",
                                     ErrorType.Timed | ErrorType.Bug);
 
                             if (time.Elapsed.TotalSeconds > ParametersInit.WebDriverTimeOut)
@@ -132,7 +132,7 @@ namespace AutoTest.helpers
         private Exception FailingSqlCommands(string text, bool notSel = false, Exception e = null)
         {
             if (_sel != null && !notSel)
-                return _sel.FailingTest("Ошибка в SQL", text, e);
+                throw _sel.FailingTest("Ошибка в SQL", text, e);
 
             throw new SqlException(text, e);
         }

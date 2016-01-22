@@ -143,7 +143,7 @@ namespace AutoTest.helpers
                     _sel.TouchWebDriver();
 
                 if (time.Elapsed.TotalSeconds > 30)
-                    _sel.BackTrace("HTTP запрос " + funcName + " длился более 30 секунд", ErrorType.Timed | ErrorType.Bug);
+                    _sel.Error("HTTP запрос " + funcName + " длился более 30 секунд", ErrorType.Timed | ErrorType.Bug);
 
                 if (task.IsFaulted && task.Exception != null)
                 {
@@ -166,11 +166,11 @@ namespace AutoTest.helpers
                         error = ex.Message;
                     }
 
-                    FailedPostCommands(funcName + ": " + error, ex);
+                    throw FailedPostCommands(funcName + ": " + error, ex);
                 }
 
                 if (time.Elapsed.TotalSeconds > ParametersInit.WebDriverTimeOut)
-                    FailedPostCommands("Время выполнения операции Post истекло: " + funcName);
+                    throw FailedPostCommands("Время выполнения операции Post истекло: " + funcName);
             }
             else
             {
@@ -261,7 +261,7 @@ namespace AutoTest.helpers
                     strBuilder.AppendLine(error);
 
                 if(_sel != null)
-                    _sel.BackTrace(strBuilder.ToString(), ErrorType.Typo);
+                    _sel.Error(strBuilder.ToString(), ErrorType.Typo);
                 else
                     Console.WriteLine(strBuilder.ToString());
             }
@@ -275,7 +275,7 @@ namespace AutoTest.helpers
         public Exception FailedPostCommands(string text, Exception e = null)
         {
             if(_sel != null)
-                _sel.FailingTest("Не удалось выполнить Http запрос", text, e);
+                throw _sel.FailingTest("Не удалось выполнить Http запрос", text, e);
 
             throw new PostException(text, e);
         }

@@ -173,7 +173,7 @@ namespace AutoTest.helpers.Selenium
                 _driver.Manage().Window.Maximize();
             }
             else
-                FailingTest("Инициализация сессии провалилась после " + _sessionParam.TryGetDriver + " попыток");
+                throw FailingTest("Инициализация сессии провалилась после " + _sessionParam.TryGetDriver + " попыток");
         }
 
         /// <summary>
@@ -395,7 +395,7 @@ namespace AutoTest.helpers.Selenium
                 if (alert == null)
                 {
                     if (!_commandParam.NoDebug)
-                        BackTrace("Не был найден алерт после рефреша", ErrorType.Typo);
+                        Error("Не был найден алерт после рефреша", ErrorType.Typo);
                 }
                 else if (_commandParam.AlertNot)
                     alert.Dismiss();
@@ -468,12 +468,18 @@ namespace AutoTest.helpers.Selenium
                 _driver.Quit();
         }
 
+        public void ErrorElement(string text, ErrorType typo)
+        {
+            text += _element == null ? "" : " в элементе '" + _element.Link + "'";
+            Error(text, typo);
+        }
+
         /// <summary>
         /// Запись ошибки тестирования
         /// </summary>
         /// <param name="text">Текст ошибки</param>
         /// <param name="typo">Тип ошибки</param>
-        public void BackTrace(string text, ErrorType typo)
+        public void Error(string text, ErrorType typo)
         {
             var info = GetBackTraceInfo();
             var name = info.ClassName + "." + info.MethodName;
@@ -561,7 +567,7 @@ namespace AutoTest.helpers.Selenium
             var error = ErrorInfo.GuidStart(Guid.Parse(guid), info.ClassName + "." + info.MethodName);
 
             if (error != null)
-                BackTrace(error, ErrorType.TestFunc);
+                Error(error, ErrorType.TestFunc);
         }
 
         /// <summary>
@@ -576,7 +582,7 @@ namespace AutoTest.helpers.Selenium
                 : ErrorInfo.GuidEnd(Guid.Parse(guid), info.ClassName + "." + info.MethodName);
 
             if(error != null)
-                BackTrace(error, ErrorType.TestFunc);
+                Error(error, ErrorType.TestFunc);
         }
 
         /// <summary>
@@ -624,12 +630,18 @@ namespace AutoTest.helpers.Selenium
         /// <returns></returns>
         public SeleniumFailException FailingTest(string failText, string errorText = null, bool reloadBrowser = false, ErrorType type = ErrorType.Failed, Exception e = null)
         {
-            BackTrace(errorText, type);
+            Error(errorText, type);
 
             if (reloadBrowser)
                 ReloadBrowser();
 
             throw new SeleniumFailException(failText, e);
+        }
+
+        public SeleniumFailException FailingElement(string failText, string errorText)
+        {
+            ErrorElement(errorText, ErrorType.Failed);
+            throw new SeleniumFailException(failText);
         }
 
         public SeleniumFailException FailingTest(string failText, Exception e)
@@ -751,13 +763,13 @@ namespace AutoTest.helpers.Selenium
             _sessionParam.Ajax = returnAjax;
 
             if (getTime.Elapsed.TotalSeconds > ParametersInit.TimeOutForLog)
-                BackTrace("Внимание! Загрузка страницы превысила " + ParametersInit.TimeOutForLog + " секунд : " + getTime.Elapsed.TotalSeconds
+                Error("Внимание! Загрузка страницы превысила " + ParametersInit.TimeOutForLog + " секунд : " + getTime.Elapsed.TotalSeconds
                     + " (" + _sessionParam.Ajax + ")", ErrorType.Timed);
             else if (_sessionParam.Ajax > 0 && _sessionParam.Ajax != oldAjax)
-                BackTrace("Повисший Ajax (" + _sessionParam.Ajax + ")", ErrorType.Timed);
+                Error("Повисший Ajax (" + _sessionParam.Ajax + ")", ErrorType.Timed);
 
             if (getTime.Elapsed.TotalSeconds > (time > ParametersInit.WebDriverTimeOut ? time : ParametersInit.WebDriverTimeOut))
-                FailingTest("Слишком долго грузится страница", null, true);
+                throw FailingTest("Слишком долго грузится страница", null, true);
         }
 
         private Int64 WaitTimeouts(Dictionary<string, object> setTimeoutsArray, Int64 timeNow, TimeoutType type)
@@ -865,10 +877,10 @@ namespace AutoTest.helpers.Selenium
             var error404 = html.Contains("Страница не найдена.");
 
             if (error1 || error3)
-                BackTrace("Внимание!!! Найден эксепшен =(" + Environment.NewLine, ErrorType.Exception);
+                Error("Внимание!!! Найден эксепшен =(" + Environment.NewLine, ErrorType.Exception);
 
             if (error404 && ParamInit.Check404)
-                BackTrace("Внимание!!! Найдена ошибка 404 =(", ErrorType.Exception);
+                Error("Внимание!!! Найдена ошибка 404 =(", ErrorType.Exception);
         }
 
         private string TryGetHtml()
@@ -951,7 +963,7 @@ namespace AutoTest.helpers.Selenium
 
             if (element == null)
             {
-                throw FailingTest("Необходимый элемент не найден", "Элемент : '" + link + "' не найден" + (_element == null ? "" : " в элементе '" + _element.Link + "'"));
+                throw FailingElement("Необходимый элемент не найден", "Элемент : '" + link + "' не найден");
             }
 
             ScrollToView(element);
@@ -959,13 +971,13 @@ namespace AutoTest.helpers.Selenium
             var visible = WaitForVisible(element);
 
             if (!visible)
-                FailingTest("Необходимый элемент невидимый", "Элемент : '" + link + "' есть, но невидим" + (_element == null ? "" : " в элементе '" + _element.Link + "'"));
+                throw FailingElement("Необходимый элемент невидимый", "Элемент : '" + link + "' есть, но невидим");
 
             if (!isDisabled) 
                 return new SelElement(element, link);
             
             if (!element.Enabled)
-                FailingTest("Необходимый элемент заблокирован", "Элемент : '" + link + "' есть, но не активен" + (_element == null ? "" : " в элементе '" + _element.Link + "'"));
+                throw FailingElement("Необходимый элемент заблокирован", "Элемент : '" + link + "' есть, но не активен");
 
             return new SelElement(element, link);
         }
@@ -986,74 +998,60 @@ namespace AutoTest.helpers.Selenium
             if (elements == null)
             {
                 if (!returnNull)
-                    FailingTest("Необходимый элемент не найден",
-                    "Число элементов : '" + link + "' равно нулю" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"));
-                else
-                    return null;
+                    throw FailingElement("Необходимый элемент не найден", "Число элементов : '" + link + "' равно нулю");
+                
+                return null;
+            }
+
+            if (elements.Any())
+            {
+                var i = 1;
+                var visibleCount = 0;
+
+                while (i < count + 1)
+                {
+                    var element = elements[i - 1];
+
+                    if (element == null)
+                    {
+                        if (!returnNull)
+                            throw FailingElement("Необходимый элемент не найден", "Элемент : '" + newlink + "' не найден");
+                        
+                        return null;
+                    }
+                    
+                    if (element.Displayed)
+                    {
+                        newElem = element;
+                        newlink = ParametersFunctions.GetXPathCount(link, i);
+                        visibleCount++;
+                    }
+
+                    if (visibleCount == 0 && i == count)
+                    {
+                        if (!returnNull)
+                            throw FailingElement("Необходимые элементы невидимые", "Все найденые элементы : '" + link + "' невидимые");
+                        
+                        return null;
+                    }
+                    
+                    if (visibleCount > 1)
+                    {
+                        if (!returnNull)
+                            throw FailingElement("Необходимых элементов более одного", "Найдено более одного видимого элемента : '" + link + "'");
+                        
+                        return null;
+                    }
+
+                    i++;
+                }
             }
             else
             {
-
-                if (elements.Any())
-                {
-                    var i = 1;
-                    var visibleCount = 0;
-
-                    while (i < count + 1)
-                    {
-                        var element = elements[i - 1];
-
-                        if (element == null)
-                        {
-                            if (!returnNull)
-                                FailingTest("Необходимый элемент не найден",
-                                    "Элемент : '" + newlink + "' не найден"
-                                    + (_element == null ? "" : " в элементе '" + _element.Link + "'"));
-                            else
-                                return null;
-                        }
-                        else
-                        {
-                            if (element.Displayed)
-                            {
-                                newElem = element;
-                                newlink = ParametersFunctions.GetXPathCount(link, i);
-                                visibleCount++;
-                            }
-
-                            if (visibleCount == 0 && i == count)
-                            {
-                                if (!returnNull)
-                                    FailingTest("Необходимые элементы невидимые",
-                                        "Все найденые элементы : '" + link + "' невидимые" +
-                                        (_element == null ? "" : " в элементе '" + _element.Link + "'"));
-                                else
-                                    return null;
-                            }
-                            else if (visibleCount > 1)
-                            {
-                                if (!returnNull)
-                                    FailingTest("Необходимых элементов более одного",
-                                        "Найдено более одного видимого элемента : '" + link + "'" +
-                                        (_element == null ? "" : " в элементе '" + _element.Link + "'"));
-                                else
-                                    return null;
-                            }
-
-                            i++;
-                        }
-                    }
-                }
-                else
-                {
-                    if (!returnNull)
-                        FailingTest("Необходимый элемент не найден",
-                            "Элемент : '" + newlink + "' не найден"
-                            + (_element == null ? "" : " в элементе '" + _element.Link + "'"));
-                    else
-                        return null;
-                }
+                if (!returnNull)
+                    throw FailingElement("Необходимый элемент не найден", "Элемент : '" + newlink + "' не найден");
+                
+                return null;
             }
 
             return new SelElement(newElem, newlink);
@@ -1303,7 +1301,7 @@ namespace AutoTest.helpers.Selenium
                 if (alert == null)
                 {
                     if(!_commandParam.NoDebug)
-                        BackTrace("Не был найден алерт после клика на '" + element.Link + "'", ErrorType.Typo);
+                        Error("Не был найден алерт после клика на '" + element.Link + "'", ErrorType.Typo);
                 }
                 else if (_commandParam.AlertNot)
                     alert.Dismiss();
@@ -1550,10 +1548,7 @@ namespace AutoTest.helpers.Selenium
                 return list;
             }
 
-            FailingTest("Необходимый элемент не найден", "Элемент : '" + select.Select.Link + "' не найден" +
-                (_element == null ? "" : " в элементе '" + _element.Link + "'"));
-
-            return null;
+            throw FailingElement("Необходимый элемент не найден", "Элемент : '" + select.Select.Link + "' не найден");
         }
 
         /// <summary>
@@ -1587,8 +1582,7 @@ namespace AutoTest.helpers.Selenium
                 if (visibleFound == count) return j;
             }
 
-            throw FailingTest("Необходимый элемент не найден", "Не найден видимый элемент '" + link + "' по счету '" + count + "'" +
-                (_element == null ? "" : " в элементе '" + _element.Link + "'"));
+            throw FailingElement("Необходимый элемент не найден", "Не найден видимый элемент '" + link + "' по счету '" + count + "'");
         }
 
         /// <summary>
@@ -1624,7 +1618,7 @@ namespace AutoTest.helpers.Selenium
             if(!File.Exists(dirHost + filename))
             {
                 if(!_commandParam.NoDebug)
-                    BackTrace("Файл: '" + filename + "' не найден", ErrorType.Typo);
+                    Error("Файл: '" + filename + "' не найден", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -1683,7 +1677,7 @@ namespace AutoTest.helpers.Selenium
             if(!File.Exists(filePath))
             {
                 if(!comPar.NoDebug)
-                    BackTrace("Файл '" + filename + "' не начал загружаться в течении " + time + " секунд", ErrorType.Typo);
+                    Error("Файл '" + filename + "' не начал загружаться в течении " + time + " секунд", ErrorType.Typo);
                 
                 _commandParam.Default();
                 return false;
@@ -1714,7 +1708,7 @@ namespace AutoTest.helpers.Selenium
             catch (Exception) 
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Файл '" + filename + "' не загрузился за " + time + " секунд.", ErrorType.Typo);
+                    Error("Файл '" + filename + "' не загрузился за " + time + " секунд.", ErrorType.Typo);
 
                 _commandParam.Default();
                 return false;
@@ -1756,8 +1750,7 @@ namespace AutoTest.helpers.Selenium
             if (!el.Element.Equals(activeEl))
             {
                 if(!_commandParam.NoDebug)
-                    BackTrace("Элемент: '" + el.Link + "' не в фокусе" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент: '" + el.Link + "' не в фокусе", ErrorType.Typo);
 
                 if (_commandParam.Sleep > 0)
                     Thread.Sleep(_commandParam.Sleep * 1000);
@@ -1788,8 +1781,7 @@ namespace AutoTest.helpers.Selenium
             if (el.Element.Equals(activeEl))
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Элемент: '" + el.Link + "' в фокусе" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент: '" + el.Link + "' в фокусе", ErrorType.Typo);
 
                 if (_commandParam.Sleep > 0)
                     Thread.Sleep(_commandParam.Sleep * 1000);
@@ -1822,8 +1814,7 @@ namespace AutoTest.helpers.Selenium
                 if (!source.Contains(text))
                 {
                     if (!_commandParam.NoDebug)
-                        BackTrace("Текст: '" + text + "' не найден" +
-                                  (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                        ErrorElement("Текст: '" + text + "' не найден", ErrorType.Typo);
 
                     forReturn = false;
                 }
@@ -1852,8 +1843,7 @@ namespace AutoTest.helpers.Selenium
                 if (source.Contains(text))
                 {
                     if (!_commandParam.NoDebug)
-                        BackTrace("Текст: '" + text + "' найден" +
-                                  (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                        ErrorElement("Текст: '" + text + "' найден", ErrorType.Typo);
 
                     forReturn = false;
                 }
@@ -1882,8 +1872,7 @@ namespace AutoTest.helpers.Selenium
             if(!element.Element.Enabled)
             {
                 if(!comPar.NoDebug)
-                    BackTrace("Элемент: " + element.Link + ", не активен" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент: " + element.Link + ", не активен", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -1911,8 +1900,7 @@ namespace AutoTest.helpers.Selenium
             if (element.Element.Enabled)
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Элемент: " + element.Link + ", активен" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент: " + element.Link + ", активен", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -1938,7 +1926,7 @@ namespace AutoTest.helpers.Selenium
             if (value1.ToString() != value2.ToString())
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Значение '" + value1 + "' != '" + value2 + "' " + text, ErrorType.Typo);
+                    Error("Значение '" + value1 + "' != '" + value2 + "' " + text, ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -1964,7 +1952,7 @@ namespace AutoTest.helpers.Selenium
             if (value1.ToString() == value2.ToString())
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Значение '" + value1 + "' == '" + value2 + "' " + text, ErrorType.Typo);
+                    Error("Значение '" + value1 + "' == '" + value2 + "' " + text, ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -1993,8 +1981,7 @@ namespace AutoTest.helpers.Selenium
             if (newValue != value)
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Значение '" + (value ?? "null") + "' != '" + (newValue ?? "null") + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Значение '" + (value ?? "null") + "' != '" + (newValue ?? "null") + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2022,8 +2009,7 @@ namespace AutoTest.helpers.Selenium
             if(!newValue.Contains(value))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Значение '" + newValue + "' не содержит '" + (value ?? "null") + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Значение '" + newValue + "' не содержит '" + (value ?? "null") + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2051,8 +2037,7 @@ namespace AutoTest.helpers.Selenium
             if (newValue.Contains(value))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Значение '" + newValue + "' содержит '" + (value ?? "null") + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Значение '" + newValue + "' содержит '" + (value ?? "null") + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2078,7 +2063,7 @@ namespace AutoTest.helpers.Selenium
             if (el == null)
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Элемент : '" + link + "' не найден" + (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент : '" + link + "' не найден", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2099,7 +2084,7 @@ namespace AutoTest.helpers.Selenium
             if (el != null)
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Элемент : '" + link + "' найден" + (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент : '" + link + "' найден", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2135,8 +2120,7 @@ namespace AutoTest.helpers.Selenium
                     if (!el.Displayed)
                     {
                         if(!_commandParam.NoDebug)
-                            BackTrace("Элемент : '" + link + "' есть, но невидим" +
-                            (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                            ErrorElement("Элемент : '" + link + "' есть, но невидим", ErrorType.Typo);
 
                         isVisible = false;
                     }
@@ -2144,8 +2128,7 @@ namespace AutoTest.helpers.Selenium
                 else
                 {
                     if(!_commandParam.NoDebug)
-                        BackTrace("Элемент : '" + link + "' не найден" +
-                        (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                        ErrorElement("Элемент : '" + link + "' не найден", ErrorType.Typo);
 
                     isPresent = false;
                     isVisible = false;
@@ -2159,8 +2142,7 @@ namespace AutoTest.helpers.Selenium
                 if(elements == null)
                 {
                     if(!_commandParam.NoDebug)
-                        BackTrace("Элемент : '" + oldLink + "' не найден" + 
-                        (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                        ErrorElement("Элемент : '" + oldLink + "' не найден", ErrorType.Typo);
 
                     isPresent = false;
                 }
@@ -2188,8 +2170,7 @@ namespace AutoTest.helpers.Selenium
                     else
                     {
                         if (!_commandParam.NoDebug)
-                            BackTrace("Элемент : '" + oldLink + "' не найден" +
-                            (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                            ErrorElement("Элемент : '" + oldLink + "' не найден", ErrorType.Typo);
 
                         isPresent = false;
                     }
@@ -2199,8 +2180,7 @@ namespace AutoTest.helpers.Selenium
             if(!isVisible && isPresent)
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Элемент : '" + oldLink + "' есть, но невидим" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент : '" + oldLink + "' есть, но невидим", ErrorType.Typo);
             }
 
             if (_commandParam.Sleep > 0)
@@ -2233,8 +2213,7 @@ namespace AutoTest.helpers.Selenium
                     if (el.Displayed)
                     {
                         if (!_commandParam.NoDebug)
-                            BackTrace("Элемент : '" + link + "' есть и видимый" +
-                            (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                            ErrorElement("Элемент : '" + link + "' есть и видимый", ErrorType.Typo);
 
                         isVisible = true;
                     }
@@ -2266,8 +2245,7 @@ namespace AutoTest.helpers.Selenium
             if (isVisible)
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Элемент : '" + oldLink + "' есть и видимый" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Элемент : '" + oldLink + "' есть и видимый", ErrorType.Typo);
             }
 
             if (_commandParam.Sleep > 0)
@@ -2295,8 +2273,7 @@ namespace AutoTest.helpers.Selenium
             if (field.Value != getVal)
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Значение: '" + field.Value + "' != '" + getVal + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Значение: '" + field.Value + "' != '" + getVal + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2329,8 +2306,7 @@ namespace AutoTest.helpers.Selenium
                 if (getVal != field.Value)
                 {
                     if (!_commandParam.NoDebug)
-                        BackTrace("Значение: '" + field.Value + "' != '" + getVal + "'" +
-                        (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                        ErrorElement("Значение: '" + field.Value + "' != '" + getVal + "'", ErrorType.Typo);
 
                     forReturn = false;
                 }
@@ -2338,8 +2314,7 @@ namespace AutoTest.helpers.Selenium
             else
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Скрытое значение '" + field.Field.Link + "' не найдено" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Скрытое значение '" + field.Field.Link + "' не найдено", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2369,8 +2344,7 @@ namespace AutoTest.helpers.Selenium
             if (select.Value != getVal)
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Значение: '" + select.Value + "' != '" + getVal + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Значение: '" + select.Value + "' != '" + getVal + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2479,8 +2453,7 @@ namespace AutoTest.helpers.Selenium
             if (!attrGet.Attr.Contains(contain))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Аттрибут поля: '" + attrGet.Link + "' не содержит '" + (contain ?? "null") + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Аттрибут поля: '" + attrGet.Link + "' не содержит '" + (contain ?? "null") + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2510,8 +2483,7 @@ namespace AutoTest.helpers.Selenium
             if (attrGet.Attr.Contains(contain))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Аттрибут поля: '" + attrGet.Link + "' содержит '" + (contain ?? "null") + "'" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Аттрибут поля: '" + attrGet.Link + "' содержит '" + (contain ?? "null") + "'", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2537,8 +2509,7 @@ namespace AutoTest.helpers.Selenium
             if(!el.Element.Selected)
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Радио-кнопка: '" + el.Link + "' не выбрана" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Радио-кнопка: '" + el.Link + "' не выбрана", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2564,8 +2535,7 @@ namespace AutoTest.helpers.Selenium
             if (el.Element.Selected)
             {
                 if (!_commandParam.NoDebug)
-                    BackTrace("Радио-кнопка: '" + el.Link + "' выбрана" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Радио-кнопка: '" + el.Link + "' выбрана", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2595,8 +2565,7 @@ namespace AutoTest.helpers.Selenium
             if(!attr.Attr.Contains("disable") && disabled.Attr != "true" && !attr2.Attr.Contains("disable") && !attr2.Attr.Contains("locked"))
             {
                 if (!comPar.NoDebug)
-                     BackTrace("Кнопка: '" + attr.Link + "' активна" +
-                    (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + attr.Link + "' активна", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2626,8 +2595,7 @@ namespace AutoTest.helpers.Selenium
             if (attr.Attr.Contains("disable") || disabled.Attr == "true" || attr2.Attr.Contains("disable") || attr2.Attr.Contains("locked"))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Кнопка: '" + attr.Link + "' не активна" +
-                   (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + attr.Link + "' не активна", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2656,8 +2624,7 @@ namespace AutoTest.helpers.Selenium
             if (!(attr.Attr.Contains("active") || attr.Attr.Contains("selected")) && !(attr2.Attr.Contains("active") || attr2.Attr.Contains("selected")))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Кнопка: '" + attr.Link + "' не нажата" +
-                   (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + attr.Link + "' не нажата", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2686,8 +2653,7 @@ namespace AutoTest.helpers.Selenium
             if (attr.Attr.Contains("active") || attr2.Attr.Contains("active") || attr.Attr.Contains("selected") || attr2.Attr.Contains("selected"))
             {
                 if (!comPar.NoDebug)
-                    BackTrace("Кнопка: '" + attr.Link + "' нажата" +
-                   (_element == null ? "" : " в элементе '" + _element.Link + "'"), ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + attr.Link + "' нажата", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2850,8 +2816,7 @@ namespace AutoTest.helpers.Selenium
             }
 
             if (!_commandParam.NoDebug)
-                FailingTest("Необходимый элемент не найден", "Элемент '" + button.Link + "' не найден" +
-                (_element == null ? "" : " в элементе '" + _element.Link + "'"));
+                throw FailingElement("Необходимый элемент не найден", "Элемент '" + button.Link + "' не найден");
 
             _commandParam.Default();
 
@@ -2901,7 +2866,7 @@ namespace AutoTest.helpers.Selenium
                 var node = xml.DocumentElement;
 
                 if (node == null)
-                    throw new ArgumentNullException();
+                    throw new ArgumentException("node");
 
                 XmlNamespaceManager nsmgr = null;
                 if (!string.IsNullOrEmpty(node.NamespaceURI))
@@ -2941,7 +2906,7 @@ namespace AutoTest.helpers.Selenium
             var newWindow = windowsNew.ToArray().Except(windowsOld).ToArray();
 
             if (!newWindow.Any())
-                FailingTest("Новое окно не появилось");
+                throw FailingTest("Новое окно не появилось");
 
             var windowId = newWindow.First();
             _driver.SwitchTo().Window(windowId);
@@ -2980,7 +2945,7 @@ namespace AutoTest.helpers.Selenium
             var windows = _driver.WindowHandles;
 
             if(!windows.Any())
-                FailingTest("Было закрыто последнее активное окно сессии");
+                throw FailingTest("Было закрыто последнее активное окно сессии");
 
             _driver.SwitchTo().Window(windows.First());
 
@@ -3027,10 +2992,10 @@ namespace AutoTest.helpers.Selenium
                 if (windows.Contains(windowId))
                     _driver.SwitchTo().Window(windowId);
                 else
-                    FailingTest("Окна с таким ID не найдено");
+                    throw FailingTest("Окна с таким ID не найдено");
             }
             else
-                FailingTest("На вход должен быть гуид окна");
+                throw FailingTest("На вход должен быть гуид окна");
 
             if(_commandParam.Sleep > 0)
                 Thread.Sleep(_commandParam.Sleep * 1000);
@@ -3064,7 +3029,7 @@ namespace AutoTest.helpers.Selenium
             var newWindow = windowsNew.ToArray().Except(windowsOld).ToArray();
 
             if(!newWindow.Any())
-                FailingTest("Новое окно не появилось");
+                throw FailingTest("Новое окно не появилось");
 
             var windowId = newWindow.First();
             _driver.SwitchTo().Window(windowId);
