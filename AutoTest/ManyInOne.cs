@@ -95,7 +95,7 @@ namespace AutoTest
                 if (ParamInit.ParallelGuid.HasValue)
                     Mysql.SetTestLogTimeEnd(test.Attr.Id, ParamInit.ParallelGuid.Value, DateTime.Now);
 
-                var print = ConfigurationManager.AppSettings.Get("ErrorsToParallel");
+                var print = ParametersInit.GetLocalConfigValue("ErrorsToParallel", true);
 
                 if (!string.IsNullOrEmpty(print))
                 {

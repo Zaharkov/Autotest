@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Configuration;
 using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.IO;
@@ -122,7 +121,7 @@ namespace AutoTest.helpers.Selenium
                         var url = new Uri("http://" + ParamInit.Host + ":" + ParamInit.Port + "/wd/hub");
                         var time = new TimeSpan(0, 0, ParametersInit.WebDriverTimeOut);
 
-                        if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("Reuse")) && !ParamInit.Parallel)
+                        if (!string.IsNullOrEmpty(ParametersInit.GetLocalConfigValue("Reuse", true)) && !ParamInit.Parallel)
                         {
                             string sessionId;
                             DesiredCapabilities capabilities;
@@ -267,9 +266,6 @@ namespace AutoTest.helpers.Selenium
 
             url = url ?? ParamInit.Address;
 
-            if (url.Contains("1pgb") || url.Contains("actidev"))
-                url = CorrectAddress(url);
-
             _driver.Navigate().GoToUrl(url);
 
             if (_commandParam.Sleep > 0)
@@ -332,18 +328,14 @@ namespace AutoTest.helpers.Selenium
         /// <returns></returns>
         public string GetCookie(string name, bool returnEx = true)
         {
-            var address = ParamInit.Address.Replace("https://", "").Replace("http://", "");
-
             foreach (var cookie in _driver.Manage().Cookies.AllCookies)
             {
-                if (cookie.Name == name &&
-                    address.StartsWith(cookie.Domain.StartsWith(".") ? cookie.Domain : "." + cookie.Domain) &&
-                    cookie.Value != Guid.Empty.ToString())
+                if (cookie.Name == name)
                     return cookie.Value;
             }
 
             if (returnEx)
-                throw FailingTest("Получение cookies не удалось", "Не найдена cookies с именем '" + name + "' на адресе '" + address + "'");
+                throw FailingTest("Получение cookies не удалось", "Не найдена cookies с именем '" + name + "'");
             
             return null;
         }
@@ -428,28 +420,6 @@ namespace AutoTest.helpers.Selenium
         }
 
         /// <summary>
-        /// Подкорректировать входной адрес с текущем
-        /// (https -> http и обратно)
-        /// </summary>
-        /// <param name="address">Адрес</param>
-        /// <returns>Адрес</returns>
-        public string CorrectAddress(string address)
-        {
-            var location = GetLocation();
-
-            if (location.StartsWith(address.Substring(0, 5)))
-                return address;
-
-            if (location.StartsWith("https"))
-                return "https" + address.Substring(4);
-
-            if (location.StartsWith("http:"))
-                return "http" + address.Substring(5);
-
-            return address;
-        }
-
-        /// <summary>
         /// Инициализация завершения теста
         /// и остановка браузера и драйвера
         /// </summary>
@@ -464,7 +434,7 @@ namespace AutoTest.helpers.Selenium
                 Console.WriteLine(_sessionParam.Time.Elapsed.TotalSeconds);
             }
 
-            if (_driver != null && (string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("Reuse")) || ParamInit.Parallel))
+            if (_driver != null && (string.IsNullOrEmpty(ParametersInit.GetLocalConfigValue("Reuse", true)) || ParamInit.Parallel))
                 _driver.Quit();
         }
 
@@ -482,17 +452,16 @@ namespace AutoTest.helpers.Selenium
         public void Error(string text, ErrorType typo)
         {
             var info = GetBackTraceInfo();
-            var name = info.ClassName + "." + info.MethodName;
 
             List<Guid> failGuids;
             if (!typo.HasFlag(ErrorType.Timed) && !typo.HasFlag(ErrorType.TestFunc))
-                failGuids = ErrorInfo.GuidCheck(name);
+                failGuids = ErrorInfo.GuidCheck(info.FullName);
             else
                 failGuids = new List<Guid>();
 
             if (text != null)
             {
-                var errorText = text + Environment.NewLine + "Имя теста: " + name + ", строка в тесте: " + info.Line +
+                var errorText = text + Environment.NewLine + "Имя теста: " + info.FullName + ", строка в тесте: " + info.Line +
                                 ", время: " + GetDateForDebug();
 
                 if (info.Bug != null)
@@ -507,7 +476,7 @@ namespace AutoTest.helpers.Selenium
                     errorText += Environment.NewLine + "Url: " + GetLocation();
                 }
 
-                ErrorInfo.AddErrorText(name, errorText + ErrorInfo.FailGuidsToStr(failGuids), typo);
+                ErrorInfo.AddErrorText(info.FullName, errorText + ErrorInfo.FailGuidsToStr(failGuids), typo);
 
                 if (!typo.HasFlag(ErrorType.Timed) && !typo.HasFlag(ErrorType.NoScreen) && !typo.HasFlag(ErrorType.TestFunc))
                 {
@@ -564,7 +533,7 @@ namespace AutoTest.helpers.Selenium
         public void GuidStart(string guid)
         {
             var info = GetBackTraceInfo();
-            var error = ErrorInfo.GuidStart(Guid.Parse(guid), info.ClassName + "." + info.MethodName);
+            var error = ErrorInfo.GuidStart(Guid.Parse(guid), info.FullName);
 
             if (error != null)
                 Error(error, ErrorType.TestFunc);
@@ -577,9 +546,9 @@ namespace AutoTest.helpers.Selenium
         public void GuidEnd(string guid = null)
         {
             var info = GetBackTraceInfo();
-            var error = guid == null 
-                ? ErrorInfo.GuidEnd(info.ClassName + "." + info.MethodName)
-                : ErrorInfo.GuidEnd(Guid.Parse(guid), info.ClassName + "." + info.MethodName);
+            var error = guid == null
+                ? ErrorInfo.GuidEnd(info.FullName)
+                : ErrorInfo.GuidEnd(Guid.Parse(guid), info.FullName);
 
             if(error != null)
                 Error(error, ErrorType.TestFunc);
@@ -1248,11 +1217,11 @@ namespace AutoTest.helpers.Selenium
         /// Переключение на цепочку
         /// (поиск элементов будет относительно заданого)
         /// </summary>
-        /// <param name="fromLink">Xpath высшего элемента цепочки</param>
+        /// <param name="button">Xpath высшего элемента цепочки</param>
         /// <returns></returns>
-        public SeleniumCommands GetChained(ParamButton fromLink)
+        public SeleniumCommands GetChained(ParamButton button)
         {
-            var el = IsPresentOrFall(fromLink.Link);
+            var el = IsPresentOrFall(button.Link);
 
             _commandParam.Default();
 
@@ -1393,10 +1362,6 @@ namespace AutoTest.helpers.Selenium
         public void DragAndDrop(ParamButton button, int x, int y)
         {
             var element = IsPresentOrFall(button.Link);
-
-            //var size = element.Element.Size;
-            //var elX = size.Width / 2;
-            //var elY = size.Height / 2;
 
             var actions = new Actions(_driver);
             actions.DragAndDropToOffset(element.Element, x, y).Perform();
@@ -1664,9 +1629,9 @@ namespace AutoTest.helpers.Selenium
 
             time = time < ParametersInit.AjaxTimeOut ? ParametersInit.AjaxTimeOut : time;
 
-            var i = new Stopwatch();
-            i.Start();
-            while(i.Elapsed.TotalSeconds < time)
+            var stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while(stopwatch.Elapsed.TotalSeconds < time)
             {
                 if(!File.Exists(filePath))
                     TouchWebDriver();
@@ -1683,9 +1648,9 @@ namespace AutoTest.helpers.Selenium
                 return false;
             }
 
-            i.Restart();
+            stopwatch.Restart();
 
-            while(i.Elapsed.TotalSeconds < time)
+            while(stopwatch.Elapsed.TotalSeconds < time)
             {
                 try
                 {
@@ -2053,17 +2018,17 @@ namespace AutoTest.helpers.Selenium
         /// <summary>
         /// Элемент существует на странице или в элементе-цепочке (даже невидимый) ?
         /// </summary>
-        /// <param name="link">Xpath</param>
+        /// <param name="button">Xpath</param>
         /// <returns></returns>
-        public bool Assert(string link)
+        public bool Assert(ParamButton button)
         {
-            var el = GetElement(link);
+            var el = GetElement(button.Link);
 
             var forReturn = true;
             if (el == null)
             {
                 if (!_commandParam.NoDebug)
-                    ErrorElement("Элемент : '" + link + "' не найден", ErrorType.Typo);
+                    ErrorElement("Элемент : '" + button.Link + "' не найден", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2076,15 +2041,15 @@ namespace AutoTest.helpers.Selenium
             return forReturn;
         }
 
-        public bool AssertNot(string link)
+        public bool AssertNot(ParamButton button)
         {
-            var el = GetElement(link);
+            var el = GetElement(button.Link);
 
             var forReturn = true;
             if (el != null)
             {
                 if (!_commandParam.NoDebug)
-                    ErrorElement("Элемент : '" + link + "' найден", ErrorType.Typo);
+                    ErrorElement("Элемент : '" + button.Link + "' найден", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2557,15 +2522,13 @@ namespace AutoTest.helpers.Selenium
         {
             var comPar = _commandParam.Copy();
 
-            var attr = Get(new ParamButton(button.Link + "/.."), "class");
-            var attr2 = Get(button, "class");
             var disabled = Get(button, "disabled");
 
             var forReturn = true;
-            if(!attr.Attr.Contains("disable") && disabled.Attr != "true" && !attr2.Attr.Contains("disable") && !attr2.Attr.Contains("locked"))
+            if(disabled.Attr != "true")
             {
                 if (!comPar.NoDebug)
-                    ErrorElement("Кнопка: '" + attr.Link + "' активна", ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + button.Link + "' активна", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2587,15 +2550,13 @@ namespace AutoTest.helpers.Selenium
         {
             var comPar = _commandParam.Copy();
 
-            var attr = Get(new ParamButton(button.Link + "/.."), "class");
-            var attr2 = Get(button, "class");
             var disabled = Get(button, "disabled");
 
             var forReturn = true;
-            if (attr.Attr.Contains("disable") || disabled.Attr == "true" || attr2.Attr.Contains("disable") || attr2.Attr.Contains("locked"))
+            if (disabled.Attr == "true")
             {
                 if (!comPar.NoDebug)
-                    ErrorElement("Кнопка: '" + attr.Link + "' не активна", ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + button.Link + "' не активна", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2617,14 +2578,13 @@ namespace AutoTest.helpers.Selenium
         {
             var comPar = _commandParam.Copy();
 
-            var attr = Get(new ParamButton(button.Link + "/.."), "class");
-            var attr2 = Get(button, "class");
+            var attr = Get(button, "class");
 
             var forReturn = true;
-            if (!(attr.Attr.Contains("active") || attr.Attr.Contains("selected")) && !(attr2.Attr.Contains("active") || attr2.Attr.Contains("selected")))
+            if (!attr.Attr.Contains("active"))
             {
                 if (!comPar.NoDebug)
-                    ErrorElement("Кнопка: '" + attr.Link + "' не нажата", ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + button.Link + "' не нажата", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2646,14 +2606,13 @@ namespace AutoTest.helpers.Selenium
         {
             var comPar = _commandParam.Copy();
 
-            var attr = Get(new ParamButton(button.Link + "/.."), "class");
-            var attr2 = Get(button, "class");
+            var attr = Get(button, "class");
 
             var forReturn = true;
-            if (attr.Attr.Contains("active") || attr2.Attr.Contains("active") || attr.Attr.Contains("selected") || attr2.Attr.Contains("selected"))
+            if (attr.Attr.Contains("active"))
             {
                 if (!comPar.NoDebug)
-                    ErrorElement("Кнопка: '" + attr.Link + "' нажата", ErrorType.Typo);
+                    ErrorElement("Кнопка: '" + button.Link + "' нажата", ErrorType.Typo);
 
                 forReturn = false;
             }
@@ -2831,11 +2790,6 @@ namespace AutoTest.helpers.Selenium
         /// <returns></returns>
         public SelXml LoadXmlbyHref(string href, string filename)
         {
-            if(!href.StartsWith("http"))
-                href = ParamInit.Address + href;
-
-            href = CorrectAddress(href);
-
             filename = Encoding.Default.GetString(Encoding.Convert(Encoding.UTF8, Encoding.Default, Encoding.UTF8.GetBytes(filename)));
 
             DeleteOldFile(filename);
@@ -3174,12 +3128,15 @@ namespace AutoTest.helpers.Selenium
         /// </summary>
         public string Bug;
 
+        public string FullName;
+
         public BackTraceInfo(string className, string methodName, int line, string bug)
         {
             ClassName = className;
             MethodName = methodName;
             Line = line;
             Bug = bug;
+            FullName = ClassName + "." + MethodName;
         }
     }
 

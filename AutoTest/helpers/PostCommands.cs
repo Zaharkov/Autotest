@@ -106,13 +106,12 @@ namespace AutoTest.helpers
         {
             _sel = sel;
             _baseAddress = address;
-            var baseAddress = address.StartsWith("https") || address.Contains("localhost") ? address : address.Insert(4, "s");
 
             ServicePointManager.DefaultConnectionLimit = ParametersInit.ThreadCount;
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
             HttpInfo = new HttpInfo(ParametersInit.WebDriverTimeOut * 1000)
             {
-                BaseAddress = baseAddress
+                BaseAddress = _baseAddress
             };
         }
 
