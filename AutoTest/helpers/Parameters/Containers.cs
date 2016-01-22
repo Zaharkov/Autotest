@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
 
-namespace AutoTest.helpers
+namespace AutoTest.helpers.Parameters
 {
     public interface IParam<out T>
     {
@@ -191,12 +191,12 @@ namespace AutoTest.helpers
 
                 if (_split)
                 {
-                    var words = Value.Split(new[] {' '});
+                    var words = Value.Split(' ');
                     words.ToList().ForEach(t => newXpath += "[contains(text(),'" + t + "') or node()[contains(., '" + t + "')]]");
 
                     if (notContains != null)
                     {
-                        words = notContains.Split(new[] {' '});
+                        words = notContains.Split(' ');
                         words.ToList().ForEach(t => newXpath += "[not(contains(text(),'" + t + "') or node()[contains(., '" + t + "')])]");
                     }
                 }

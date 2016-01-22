@@ -1,23 +1,23 @@
-﻿namespace AutoTest.helpers
+﻿namespace AutoTest.helpers.Parameters
 {
     /// <summary>
     /// Класс параметров проекта автотестирования
     /// </summary>
-    public class Parameters : ParametersFunctions
+    public class ParametersRead : ParametersFunctions
     {
-        private Parameters()
+        private ParametersRead()
         {
             
         }
 
-        private static Parameters _parameters;
+        private static ParametersRead _parameters;
         private static readonly object LockObj = new object();
 
-        public static Parameters Instance()
+        public static ParametersRead Instance()
         {
             lock (LockObj)
             {
-                return _parameters ?? (_parameters = new Parameters());
+                return _parameters ?? (_parameters = new ParametersRead());
             }
         }
 

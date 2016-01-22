@@ -54,7 +54,7 @@ mainModule.run(function ($rootScope) {
 
     function recursion (element, visibleRoot) {
 
-        if (element.nodeType == 1) {
+        if (element.nodeType === 1) {
 
             var attr = element.getAttribute('data-qa');
             var text = element.qaValue ? element.qaValue : attr;

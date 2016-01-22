@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoTest.helpers;
 using NUnit.Framework;
+using AutoTest.helpers.Parameters;
 
 namespace LoadTest.helpers
 {
@@ -99,7 +100,7 @@ namespace LoadTest.helpers
 
             var swTotal = Stopwatch.StartNew();
 
-            for (var j = 0; j < _currentThreadTest.Test.TestIFace.GetMethodsInfo().Count(); j++)
+            for (var j = 0; j < _currentThreadTest.Test.TestIFace.GetMethodsInfo().Count; j++)
                 DoTaskWork(false, j);
 
             swTotal.Stop();

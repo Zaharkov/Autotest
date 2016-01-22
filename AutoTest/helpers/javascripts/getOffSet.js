@@ -3,6 +3,8 @@ document.getElementByXPath = (function (sValue) {
     if (a.snapshotLength > 0) {
         return a.snapshotItem(0);
     }
+
+    return null;
 });
 
 document.getOffset = (function (elem) {

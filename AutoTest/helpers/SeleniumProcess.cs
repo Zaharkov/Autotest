@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using AutoTest.helpers.Parameters;
 
 namespace AutoTest.helpers
 {
@@ -497,8 +498,8 @@ namespace AutoTest.helpers
             {
                 var fileName = file.Replace(PathCommands.SharedFiles, "");
 
-                if (fileName.Count() > ParametersInit.ServerName.Count())
-                    if (fileName.Substring(0, ParametersInit.ServerName.Count()) == ParametersInit.ServerName)
+                if (fileName.Length > ParametersInit.ServerName.Length)
+                    if (fileName.Substring(0, ParametersInit.ServerName.Length) == ParametersInit.ServerName)
                         seleniumRc = file;
             }
 

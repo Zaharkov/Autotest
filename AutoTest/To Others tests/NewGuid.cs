@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 
-namespace AutoTest.Others
+namespace AutoTest.To_Others_Tests
 {
     class NewGuid
     {

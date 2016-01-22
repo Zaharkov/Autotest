@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace AutoTest.helpers
+namespace AutoTest.helpers.Parameters
 {
     public enum ProjectType
     {

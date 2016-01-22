@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization.Formatters.Binary;
 using AutoTest.helpers;
+using AutoTest.helpers.Parameters;
 
 namespace LoadTest.helpers
 {

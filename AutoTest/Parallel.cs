@@ -7,6 +7,7 @@ using System.Xml.Serialization;
 using AutoTest.helpers;
 using Digital.Common.Utils;
 using NUnit.Framework;
+using AutoTest.helpers.Parameters;
 
 namespace AutoTest
 {
@@ -82,7 +83,7 @@ namespace AutoTest
         public void TestInParallel(string specName = null)
         {
             var hubHolder = GetHubHolder();
-            var saveDir = string.Format("{0}{1}", Param.LogSaveDir, (!string.IsNullOrEmpty(specName) ? specName + "\\" : ""));
+            var saveDir = string.Format("{0}{1}", Param.LogSaveDir, !string.IsNullOrEmpty(specName) ? specName + "\\" : "");
 
             DefaultMailAndFolder(saveDir);
             PathCommands.DelTree(string.Format("{0}screens", saveDir));
@@ -108,7 +109,7 @@ namespace AutoTest
                     ParallelGuid = Param.ParallelGuid
                 };
 
-                param.LogSaveDir += (!string.IsNullOrEmpty(specName) ? string.Format("{0}\\", specName) : "");
+                param.LogSaveDir += !string.IsNullOrEmpty(specName) ? string.Format("{0}\\", specName) : "";
 
                 ChangeLogin(param, logins[i]);
 

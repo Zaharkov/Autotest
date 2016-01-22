@@ -5,6 +5,8 @@ using System.Threading;
 using AutoTest.helpers;
 using Digital.Common.Utils;
 using NUnit.Framework;
+using AutoTest.helpers.Selenium;
+using AutoTest.helpers.Parameters;
 
 namespace AutoTest
 {

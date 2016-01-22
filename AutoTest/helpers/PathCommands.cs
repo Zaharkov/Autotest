@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
@@ -12,6 +10,8 @@ using System.Threading.Tasks;
 using System.Xml.Serialization;
 using Microsoft.Build.Evaluation;
 using NUnit.Framework;
+using AutoTest.helpers.Parameters;
+using AutoTest.helpers.Selenium;
 
 namespace AutoTest.helpers
 {
@@ -525,7 +525,7 @@ namespace AutoTest.helpers
         }
     }
 
-    [AttributeUsage(AttributeTargets.Class, Inherited = false, AllowMultiple = false)]
+    [AttributeUsage(AttributeTargets.Class, Inherited = false)]
     public sealed class AutoTestAttribute : Attribute
     {
         public AutoTestAttribute(string id, ProjectOwners owner)
@@ -618,7 +618,7 @@ namespace AutoTest.helpers
         [XmlIgnore]
         public MethodInfo[] MethodInfos;
         [XmlIgnore]
-        public bool IsBeenRunned = false;
+        public bool IsBeenRunned;
 
         public List<Guid> GetGuids()
         {

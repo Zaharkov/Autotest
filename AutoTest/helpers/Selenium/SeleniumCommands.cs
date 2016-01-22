@@ -21,8 +21,9 @@ using OpenQA.Selenium.Interactions;
 using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
 using Cookie = OpenQA.Selenium.Cookie;
+using AutoTest.helpers.Parameters;
 
-namespace AutoTest.helpers
+namespace AutoTest.helpers.Selenium
 {
     /// <summary>
     /// Класс функциональности тестирования
@@ -50,7 +51,7 @@ namespace AutoTest.helpers
         /// <summary>
         /// Параметры тестов
         /// </summary>
-        public Parameters Param = Parameters.Instance();
+        public ParametersRead Param = ParametersRead.Instance();
 
         /// <summary>
         /// Параметры тестов
@@ -506,13 +507,13 @@ namespace AutoTest.helpers
                 {
                     var screenDir = ParamInit.LogSaveDir + "screens\\";
 
-                    var dirName = (_sessionParam.CurrentTestInfo.Number + "_" + info.MethodName);
+                    var dirName = _sessionParam.CurrentTestInfo.Number + "_" + info.MethodName;
                     string screenPath;
 
                     if (!ParamInit.Parallel)
                         screenPath = screenDir + dirName + "\\line-" + info.Line +
                                      (typo.HasFlag(ErrorType.Failed) ? "-failed" : "") +
-                                     (info.Bug != null ? ("(have bug)") : "") + ".png";
+                                     (info.Bug != null ? "(have bug)" : "") + ".png";
                     else
                     {
                         if (info.Bug == null)
@@ -596,12 +597,12 @@ namespace AutoTest.helpers
         {
             var stackTraceAll = new StackTrace(true).GetFrames();
             if(stackTraceAll == null)
-                throw new ArgumentNullException("Стек вызовов пустой");
+                throw new NullReferenceException("Стек вызовов пустой");
 
             var method = stackTraceAll.First(t => t.GetMethod().IsDefined(typeof(TestAttribute)));
             var classObj = method.GetMethod().DeclaringType;
             if(classObj == null)
-                throw new ArgumentNullException("Класс объекта вызова пустой");
+                throw new NullReferenceException("Класс объекта вызова пустой");
 
             var className = classObj.Name;
             var methodName = method.GetMethod().Name;
@@ -763,7 +764,7 @@ namespace AutoTest.helpers
         {
             var ignoredTimeouts = new Dictionary<Int64, string[]>();
 
-            var calcDelay = new Dictionary<Int64, Dictionary<string, object>>();
+            //var calcDelay = new Dictionary<Int64, Dictionary<string, object>>();
 
             setTimeoutsArray = setTimeoutsArray.OrderBy(t => Int64.Parse(t.Key)).ToDictionary(t => t.Key, t => t.Value);
 
@@ -801,7 +802,7 @@ namespace AutoTest.helpers
                     var diff = date1.Ticks + delay - date2.Ticks;
                     if (diff > 0)
                     {
-                        calcDelay[diff] = value;
+                        //calcDelay[diff] = value;
                         Thread.Sleep((int)(diff * 1.1));
 
                         if (type == TimeoutType.SetTimeOut)
@@ -834,7 +835,7 @@ namespace AutoTest.helpers
             getTime.Start();
 
             var visible = element.Displayed;
-            while (!(visible) && getTime.Elapsed.TotalSeconds < time)
+            while (!visible && getTime.Elapsed.TotalSeconds < time)
             {
                 Thread.Sleep(10);
                 visible = element.Displayed;
@@ -1014,7 +1015,7 @@ namespace AutoTest.helpers
                         }
                         else
                         {
-                            if ((element.Displayed))
+                            if (element.Displayed)
                             {
                                 newElem = element;
                                 newlink = ParametersFunctions.GetXPathCount(link, i);
@@ -1334,7 +1335,7 @@ namespace AutoTest.helpers
         public SelElement Type(ParamField field)
         {
             if (field.Value == null)
-                throw new ArgumentNullException("Значение поля должно быть задано");
+                throw new ArgumentException("Значение поля должно быть задано");
 
             var element = IsPresentOrFall(field.Field.Link);
 
@@ -1367,7 +1368,7 @@ namespace AutoTest.helpers
         public SelSelect Select(ParamSelect select)
         {
             if (select.Value == null)
-                throw new ArgumentNullException("Значение селекта должно быть задано");
+                throw new ArgumentException("Значение селекта должно быть задано");
 
             var comPar = _commandParam.Copy();
 
@@ -2285,7 +2286,7 @@ namespace AutoTest.helpers
         public bool Assert(ParamField field)
         {
             if (field.Value == null)
-                throw new ArgumentNullException("Значение поля должно быть задано");
+                throw new ArgumentException("Значение поля должно быть задано");
 
             var comPar = _commandParam.Copy();
             var getVal = Get(field);
@@ -2316,7 +2317,7 @@ namespace AutoTest.helpers
         public bool AssertHidden(ParamField field)
         {
             if (field.Value == null)
-                throw new ArgumentNullException("Значение поля должно быть задано");
+                throw new ArgumentException("Значение поля должно быть задано");
 
             var el = GetElement(field.Field.Link);
 
@@ -2359,7 +2360,7 @@ namespace AutoTest.helpers
         public bool Assert(ParamSelect select)
         {
             if (select.Value == null)
-                throw new ArgumentNullException("Значение селекта должно быть задано");
+                throw new ArgumentException("Значение селекта должно быть задано");
 
             var comPar = _commandParam.Copy();
             var getVal = Get(select);
@@ -2390,7 +2391,7 @@ namespace AutoTest.helpers
         public bool AssertContains(ParamSelect select)
         {
             if (select.Value == null)
-                throw new ArgumentNullException("Значение селекта должно быть задано");
+                throw new ArgumentException("Значение селекта должно быть задано");
 
             var comPar = _commandParam.Copy();
 
@@ -2414,7 +2415,7 @@ namespace AutoTest.helpers
         public bool AssertNotContains(ParamSelect select)
         {
             if (select.Value == null)
-                throw new ArgumentNullException("Значение селекта должно быть задано");
+                throw new ArgumentException("Значение селекта должно быть задано");
 
             var comPar = _commandParam.Copy();
 
@@ -2440,7 +2441,7 @@ namespace AutoTest.helpers
         public bool Check(ParamField field, ParamButton button, string checkText)
         {
              if (field.Value == null)
-                 throw new ArgumentNullException("Значение поля должно быть задано");
+                 throw new ArgumentException("Значение поля должно быть задано");
 
             var comPar = _commandParam.Copy();
 
@@ -2713,20 +2714,20 @@ namespace AutoTest.helpers
             string[] words;
             if(notText != null)
             {
-                words = notText.Split(new [] {' '});
+                words = notText.Split(' ');
                 words.ToList().ForEach(t => addNotText += "[text()[not(contains(.,'" + t + "'))]]");
             }
 
             var addText = "";
-            words = text.Split(new [] {' '});
+            words = text.Split(' ');
 
             foreach(var word in words)
             {
-                if(words.Count() > 1)
+                if(words.Length > 1)
                 {
                     if(word == words[0])
                         addText += "[text()[contains(.,'" + word + probel + "')]]";
-                    else if(word == words[words.Count() - 1])
+                    else if(word == words[words.Length - 1])
                         addText += "[text()[contains(.,'" + probel + word + "')]]";
                     else
                         addText += "[text()[contains(.,'"+ probel + word + probel + "')]]";
@@ -2754,20 +2755,20 @@ namespace AutoTest.helpers
             string[] words;
             if (notText != null)
             {
-                words = notText.Split(new[] { ' ' });
+                words = notText.Split(' ');
                 words.ToList().ForEach(t => addNotText += "[text()[not(contains(.,'" + t + "'))]]");
             }
 
             var addText = "";
-            words = text.Split(new[] { ' ' });
+            words = text.Split(' ');
 
             foreach (var word in words)
             {
-                if (words.Count() > 1)
+                if (words.Length > 1)
                 {
                     if (word == words[0])
                         addText += "[text()[contains(.,'" + word + probel + "')]]";
-                    else if (word == words[words.Count() - 1])
+                    else if (word == words[words.Length - 1])
                         addText += "[text()[contains(.,'" + probel + word + "')]]";
                     else
                         addText += "[text()[contains(.,'" + probel + word + probel + "')]]";
@@ -3103,29 +3104,29 @@ namespace AutoTest.helpers
         /// <summary>
         /// Макс номер таймаута js
         /// </summary>
-        public Int64 SetTimeoutMaxKey = 0;
+        public Int64 SetTimeoutMaxKey;
         /// <summary>
         /// Макс номер таймаута интервала js
         /// </summary>
-        public Int64 SetIntervalMaxKey = 0;
+        public Int64 SetIntervalMaxKey;
         /// <summary>
         /// Число текущих Ajax запросов jQuery
         /// </summary>
-        public int Ajax = 0;
+        public int Ajax;
 
         /// <summary>
         /// Счетчик таймаутов которых ждали 
         /// </summary>
-        public int SetTimeoutCounter = 0;
+        public int SetTimeoutCounter;
         /// <summary>
         /// Счетчик таймаутов интервалов которых ждали
         /// </summary>
-        public int SetIntervalCounter = 0;
+        public int SetIntervalCounter;
 
         /// <summary>
         /// Высота окна браузера
         /// </summary>
-        public int WindowY = 0;
+        public int WindowY;
 
         public Stopwatch Time = new Stopwatch();
 
@@ -3133,7 +3134,7 @@ namespace AutoTest.helpers
 
         public TestInfo CurrentTestInfo;
 
-        public int TryGetDriver = 0;
+        public int TryGetDriver;
     }
 
     /// <summary>
@@ -3141,16 +3142,16 @@ namespace AutoTest.helpers
     /// </summary>
     sealed class CommandParam
     {
-        public bool Wait = false;
-        public bool Visible = false;
-        public bool NoDebug = false;
-        public bool AlertOk = false;
-        public bool AlertNot = false;
-        public int Sleep = 0;
-        public int Ajax = 0;
-        public bool NotChain = false;
-        public bool NotAjax = false;
-        public bool NoScroll = false;
+        public bool Wait;
+        public bool Visible;
+        public bool NoDebug;
+        public bool AlertOk;
+        public bool AlertNot;
+        public int Sleep;
+        public int Ajax;
+        public bool NotChain;
+        public bool NotAjax;
+        public bool NoScroll;
 
         public void Default()
         {
@@ -3237,18 +3238,5 @@ namespace AutoTest.helpers
             StreamingContext context) : base(info, context)
         {
         }
-    }
-
-    /// <summary>
-    /// Тип проверки требования из чек-листа
-    /// </summary>
-    [Flags]
-    public enum GuidFlags
-    {
-        Start = 0x01,
-        End = 0x02,
-        Passed = 0x04,
-        Failed = 0x08,
-        Unknown = 0x10
     }
 }

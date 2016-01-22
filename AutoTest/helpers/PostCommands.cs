@@ -11,6 +11,8 @@ using System.Web.Script.Serialization;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using OpenQA.Selenium.Remote;
+using AutoTest.helpers.Parameters;
+using AutoTest.helpers.Selenium;
 
 namespace AutoTest.helpers
 {
@@ -21,7 +23,7 @@ namespace AutoTest.helpers
     /// </summary>
     public class PostCommands : ExecutePostController
     {
-        public readonly Parameters Param = Parameters.Instance();
+        public readonly ParametersRead Param = ParametersRead.Instance();
         public readonly ParametersInit ParamInit;
 
         public PostCommands(ParametersInit param, SeleniumCommands sel = null, string address = null)
@@ -128,7 +130,7 @@ namespace AutoTest.helpers
         /// <param name="notSel"></param>
         public virtual void Execute(string url, bool notSel = false)
         {
-            var funcName = url.Split(new[] { '?' }).First().Split(new[] { '/' }).Last();
+            var funcName = url.Split('?').First().Split('/').Last();
 
             if (_sel != null && !notSel)
             {
@@ -304,7 +306,7 @@ namespace AutoTest.helpers
     {
         public static string ToDescription(this Enum value)
         {
-            var da = (System.ComponentModel.DescriptionAttribute[])(value.GetType().GetField(value.ToString())).GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
+            var da = (System.ComponentModel.DescriptionAttribute[])value.GetType().GetField(value.ToString()).GetCustomAttributes(typeof(System.ComponentModel.DescriptionAttribute), false);
             return da.Length > 0 ? da[0].Description : value.ToString();
         }
     }
@@ -386,7 +388,7 @@ namespace AutoTest.helpers
 
         public void CreateCookie()
         {
-            Headers.Add(HttpRequestHeader.Cookie, _cookies.Aggregate("", (current, cookie) => current + (cookie.Key + "=" + cookie.Value + ";")));
+            Headers.Add(HttpRequestHeader.Cookie, _cookies.Aggregate("", (current, cookie) => current + cookie.Key + "=" + cookie.Value + ";"));
         }
 
         /// <summary>
@@ -406,7 +408,7 @@ namespace AutoTest.helpers
         }
 
         private object _json;
-        public bool IsJsonSet = false;
+        public bool IsJsonSet;
 
         public HttpInfo AddJsonContent(Dictionary<string, object> jsonObj)
         {
@@ -426,7 +428,7 @@ namespace AutoTest.helpers
         {
             if (IsJsonSet && _json is Dictionary<string, object>)
             {
-                var json = _json as Dictionary<string, object>;
+                var json = (Dictionary<string, object>) _json;
                 if(!json.ContainsKey(name))
                     json.Add(name, value);
             }

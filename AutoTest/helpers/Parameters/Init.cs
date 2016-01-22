@@ -4,7 +4,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 
-namespace AutoTest.helpers
+namespace AutoTest.helpers.Parameters
 {
     public class ParametersInit
     {

@@ -5,20 +5,24 @@ newArray['Ajax'] = 0;
 
 var setTimeouts = window._activeSetTimeouts;
 for (var keyTimeouts in setTimeouts) {
-    if (keyTimeouts > arguments[0] && setTimeouts[keyTimeouts]['delay'] < 5000) {
-        newArray['SetTimeouts'][keyTimeouts] = setTimeouts[keyTimeouts];
+    if (setTimeouts.hasOwnProperty(keyTimeouts)) {
+        if (keyTimeouts > arguments[0] && setTimeouts[keyTimeouts]['delay'] < 5000) {
+            newArray['SetTimeouts'][keyTimeouts] = setTimeouts[keyTimeouts];
+        }
     }
 }
 
 var setIntervals = window._activeSetIntervals;
 for (var keyIntervals in setIntervals) {
-    if (keyIntervals > arguments[1] && setIntervals[keyIntervals]['delay'] < 5000) {
-        newArray['SetIntervals'][keyIntervals] = setIntervals[keyIntervals];
+    if (setIntervals.hasOwnProperty(keyIntervals)) {
+        if (keyIntervals > arguments[1] && setIntervals[keyIntervals]['delay'] < 5000) {
+            newArray['SetIntervals'][keyIntervals] = setIntervals[keyIntervals];
+        }
     }
 }
 
 var ajaxSum = 0;
-if (document.readyState != 'complete')
+if (document.readyState !== 'complete')
     ajaxSum++;
 
 if (typeof window.activeRequests != 'undefined')

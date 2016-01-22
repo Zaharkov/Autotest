@@ -4,7 +4,7 @@ using System.Xml;
 using System.Xml.Linq;
 using OpenQA.Selenium;
 
-namespace AutoTest.helpers
+namespace AutoTest.helpers.Selenium
 {
     /// <summary>
     /// Контейнер выгруженного элемента
@@ -80,7 +80,7 @@ namespace AutoTest.helpers
         public SelXml(XmlNode xml, XmlNamespaceManager ns)
         {
             if(xml == null)
-                throw new ArgumentNullException("Xml пустой");
+                throw new ArgumentNullException("xml");
 
             _xml = xml;
             _ns = ns;

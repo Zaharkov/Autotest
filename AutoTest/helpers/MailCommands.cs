@@ -4,6 +4,7 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using AE.Net.Mail;
 using MailMessage = System.Net.Mail.MailMessage;
+using AutoTest.helpers.Parameters;
 
 namespace AutoTest.helpers
 {
@@ -179,9 +180,9 @@ namespace AutoTest.helpers
             public string[] GetMailsFromLogin(string mail, string needText = "")
             {
                 var messages = GetMails(mail, needText);
-                var result = new string[messages.Count()];
+                var result = new string[messages.Length];
 
-                for (var i = 0; i < messages.Count(); i++)
+                for (var i = 0; i < messages.Length; i++)
                     result[i] = messages[i].Body;
 
                 return result;
@@ -196,7 +197,7 @@ namespace AutoTest.helpers
             public int GetNumberMailsFromLogin(string mail, string needText = "")
             {
                 var messages = GetMails(mail, needText);
-                return messages.Count();
+                return messages.Length;
             }
 
             /// <summary>

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using AutoTest.helpers;
 using NUnit.Framework;
+using AutoTest.helpers.Parameters;
 
 namespace LoadTest.helpers
 {
@@ -19,7 +20,7 @@ namespace LoadTest.helpers
     class LoadCommands
     {
         [NonSerialized]
-        public Parameters Param = Parameters.Instance();
+        public ParametersRead Param = ParametersRead.Instance();
         [NonSerialized]
         public ParametersInit ParamInit;
         [NonSerialized]

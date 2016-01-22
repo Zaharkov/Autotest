@@ -5,7 +5,7 @@ using AutoTest.helpers;
 using NUnit.Framework;
 using TechTalk.JiraRestClient;
 
-namespace AutoTest.Others
+namespace AutoTest.To_Others_Tests
 {
     internal class JiraStatus
     {

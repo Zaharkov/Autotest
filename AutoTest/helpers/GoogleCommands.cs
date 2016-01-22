@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.RegularExpressions;
@@ -12,6 +13,7 @@ using Google.Apis.Requests;
 using Google.Apis.Services;
 using Google.GData.Client;
 using Google.GData.Spreadsheets;
+using AutoTest.helpers.Parameters;
 
 namespace AutoTest.helpers
 {
@@ -102,7 +104,7 @@ namespace AutoTest.helpers
         /// <summary>
         /// Нужен "алфавит" чтобы указать диапазон колонок/строк в таблице
         /// </summary>
-        private readonly static char[] Alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
+        private static readonly char[] Alpha = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".ToCharArray();
 
         /// <summary>
         /// Свойство для получения заавторизованного сервиса работы с таблицей
@@ -728,11 +730,11 @@ namespace AutoTest.helpers
                 cellForBatch.Add(new CellForBatch(row + 2, 1, mathList[(int)row].Name));
                 cellForBatch.Add(new CellForBatch(row + 2, 2, mathList[(int)row].TestNumber));
                 cellForBatch.Add(new CellForBatch(row + 2, 3, mathList[(int)row].ThreadNumber.ToString()));
-                cellForBatch.Add(new CellForBatch(row + 2, 4, mathList[(int)row].Mean.ToString()));
-                cellForBatch.Add(new CellForBatch(row + 2, 5, mathList[(int)row].Sd.ToString()));
-                cellForBatch.Add(new CellForBatch(row + 2, 6, mathList[(int)row].Sigma1.ToString()));
-                cellForBatch.Add(new CellForBatch(row + 2, 7, mathList[(int)row].Sigma2.ToString()));
-                cellForBatch.Add(new CellForBatch(row + 2, 8, mathList[(int)row].Sigma3.ToString()));
+                cellForBatch.Add(new CellForBatch(row + 2, 4, mathList[(int)row].Mean.ToString(CultureInfo.CurrentCulture)));
+                cellForBatch.Add(new CellForBatch(row + 2, 5, mathList[(int)row].Sd.ToString(CultureInfo.CurrentCulture)));
+                cellForBatch.Add(new CellForBatch(row + 2, 6, mathList[(int)row].Sigma1.ToString(CultureInfo.CurrentCulture)));
+                cellForBatch.Add(new CellForBatch(row + 2, 7, mathList[(int)row].Sigma2.ToString(CultureInfo.CurrentCulture)));
+                cellForBatch.Add(new CellForBatch(row + 2, 8, mathList[(int)row].Sigma3.ToString(CultureInfo.CurrentCulture)));
             }
 
             MakeBatchRequest(entitesList, cellForBatch);

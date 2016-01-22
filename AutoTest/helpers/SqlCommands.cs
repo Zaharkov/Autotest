@@ -7,6 +7,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AutoTest.Properties;
+using AutoTest.helpers.Selenium;
+using AutoTest.helpers.Parameters;
 
 namespace AutoTest.helpers
 {
@@ -110,7 +112,7 @@ namespace AutoTest.helpers
                             throw;
 
                         var paramText = sqlCommand.Parameters.Cast<object>().Aggregate("", (current, param) =>
-                            current + (param + "=" + sqlCommand.Parameters[param.ToString()].Value + ","));
+                            current + param + "=" + sqlCommand.Parameters[param.ToString()].Value + ",");
 
                         throw FailingSqlCommands("Запрос в базу: " + id + " завершился с ошибкой: " + e.Message
                                                  + Environment.NewLine + paramText, notSel, e);

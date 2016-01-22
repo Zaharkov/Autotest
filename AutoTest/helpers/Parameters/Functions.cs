@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using LingvoNET;
 
-namespace AutoTest.helpers
+namespace AutoTest.helpers.Parameters
 {
     public enum MoneyStyle
     {
@@ -18,6 +18,19 @@ namespace AutoTest.helpers
         WithZeroKop,
         WithNamed,
         WithNamedAndZeroKop
+    }
+
+    /// <summary>
+    /// Тип проверки требования из чек-листа
+    /// </summary>
+    [Flags]
+    public enum GuidFlags
+    {
+        Start = 0x01,
+        End = 0x02,
+        Passed = 0x04,
+        Failed = 0x08,
+        Unknown = 0x10
     }
 
     public class ParametersFunctions
@@ -72,11 +85,7 @@ namespace AutoTest.helpers
         /// <returns>Первый день среднего месяца квартала</returns>
         public DateTime GetMiddleDayOfKvartal(DateTime date)
         {
-            return new DateTime(date.Year, date.AddMonths(
-                    (date.Month % 3 == 0) ?
-                        -1 : (date.Month % 3 == 1) ?
-                            1 : 0
-                ).Month, 1);
+            return new DateTime(date.Year, date.AddMonths(date.Month % 3 == 0 ? -1 : date.Month % 3 == 1 ? 1 : 0).Month, 1);
         }
 
         /// <summary>
@@ -128,7 +137,7 @@ namespace AutoTest.helpers
             switch (of)
             {
                 case "month": return date.AddDays(1 - day);
-                case "quarter": return date.AddDays(1 - day).AddMonths(1 - ((month % 3) != 0 ? (month % 3) : 3));
+                case "quarter": return date.AddDays(1 - day).AddMonths(1 - (month % 3 != 0 ? month % 3 : 3));
                 case "year": return date.AddDays(1 - day).AddMonths(1 - month);
                 default:
                     return date;
@@ -368,7 +377,7 @@ namespace AutoTest.helpers
 
             outputNumber = dayReturn ? " " + outputNumber : "";
 
-            return number + (addWord == "" ? outputNumber : (" " + outputWord + outputNumber));
+            return number + (addWord == "" ? outputNumber : " " + outputWord + outputNumber);
         }
 
         /// <summary>
@@ -385,7 +394,7 @@ namespace AutoTest.helpers
 
         public T GetParam<T>(string name) where T : class
         {
-            var type = Parameters.Instance().GetType().InvokeMember(name, BindingFlags.GetField, null, this, new object[] { }) as T;
+            var type = ParametersRead.Instance().GetType().InvokeMember(name, BindingFlags.GetField, null, this, new object[] { }) as T;
 
             if (type == null)
                 throw new NullReferenceException("Не смогло получить " + typeof(T).Name + " с названием '" + name + "'");
@@ -425,14 +434,9 @@ namespace AutoTest.helpers
         public string IntToString(int b)
         {
             var array = b.ToString().ToCharArray();
-            var result = "";
+            var result = array.Aggregate("", (current, charInt) => current + IntToString(charInt) + " ");
 
-            foreach (var charInt in array)
-            {
-                result += IntToString(charInt) + " ";
-            }
-
-            return result.Remove(result.Count() - 1);
+            return result.Remove(result.Length - 1);
         }
     }
 
@@ -837,7 +841,7 @@ namespace AutoTest.helpers
             }
 
             if (!string.IsNullOrEmpty(errors))
-                errors = errors.Substring(0, errors.Count() - 2) + ")";
+                errors = errors.Substring(0, errors.Length - 2) + ")";
 
             return errors;
         }
@@ -868,7 +872,7 @@ namespace AutoTest.helpers
             }
 
             if (!string.IsNullOrEmpty(errors))
-                errors = errors.Substring(0, errors.Count() - 2) + ")";
+                errors = errors.Substring(0, errors.Length - 2) + ")";
 
             return errors;
         }
@@ -880,7 +884,7 @@ namespace AutoTest.helpers
                 if (GuidErrors[guid].ContainsKey(classMethodName))
                 {
                     if (!GuidErrors[guid][classMethodName].HasFlag(GuidFlags.End))
-                        return ("Гуид '" + guid + "' уже был начат и при этом не был закончен");
+                        return "Гуид '" + guid + "' уже был начат и при этом не был закончен";
 
                     if (GuidErrors[guid][classMethodName].HasFlag(GuidFlags.Failed))
                         GuidErrors[guid][classMethodName] = GuidFlags.Start | GuidFlags.Failed;
@@ -912,10 +916,10 @@ namespace AutoTest.helpers
                     GuidErrors[guid][classMethodName] |= GuidFlags.End;
                 }
                 else
-                    return ("Нет начала гуида '" + guid + "' для конца проверки");
+                    return "Нет начала гуида '" + guid + "' для конца проверки";
             }
             else
-                return ("Нет начала гуида '" + guid + "' для конца проверки");
+                return "Нет начала гуида '" + guid + "' для конца проверки";
 
             return null;
         }

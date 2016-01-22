@@ -4,7 +4,7 @@ using System.Diagnostics;
 using AutoTest.helpers;
 using NUnit.Framework;
 
-namespace AutoTest.Others
+namespace AutoTest.To_Others_Tests
 {
     class GuidCoverage
     {
