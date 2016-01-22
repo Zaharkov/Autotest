@@ -288,11 +288,11 @@ namespace AutoTest.helpers.Selenium
         /// <param name="pass">Пароль</param>
         public void Login(string name, string pass)
         {
-            Url(ParamInit.Address + "/?ptype=Uo");
+            Url(ParamInit.Address);
             
             Click(Param.SiteIn);
-            Type(ParamInit.Login.SetValue(name));
-            Type(ParamInit.Password.SetValue(pass));
+            SendKeys(ParamInit.Login.SetValue(name));
+            SendKeys(ParamInit.Password.SetValue(pass));
             Wait().Click(Param.In);
 
             _sessionParam.LogoutHref = Get(Param.SiteExit, "href");
@@ -1330,7 +1330,7 @@ namespace AutoTest.helpers.Selenium
         /// </summary>
         /// <param name="field">Параметр поля</param>
         /// <returns></returns>
-        public SelElement Type(ParamField field)
+        public SelElement SendKeys(ParamField field)
         {
             if (field.Value == null)
                 throw new ArgumentException("Значение поля должно быть задано");
@@ -2420,13 +2420,13 @@ namespace AutoTest.helpers.Selenium
             var comPar = _commandParam.Copy();
 
             var value = Get(field);
-            Type(field);
+            SendKeys(field);
 
             if(button != null)
                 Click(button);
 
             var forReturn = NoDebug(comPar.NoDebug).IsPresent(checkText);
-            Type(field.SetValue(value));
+            SendKeys(field.SetValue(value));
 
             if (comPar.Sleep > 0)
                 Thread.Sleep(comPar.Sleep * 1000);
