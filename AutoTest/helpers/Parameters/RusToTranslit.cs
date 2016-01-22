@@ -14,8 +14,8 @@ namespace AutoTest.helpers
     /// </summary>
     public static class Transliteration
     {
-        private readonly static Dictionary<string, string> Gost = new Dictionary<string, string>(); //ГОСТ 16876-71
-        private readonly static Dictionary<string, string> Iso = new Dictionary<string, string>(); //ISO 9-95
+        private static readonly Dictionary<string, string> Gost = new Dictionary<string, string>(); //ГОСТ 16876-71
+        private static readonly Dictionary<string, string> Iso = new Dictionary<string, string>(); //ISO 9-95
 
         public static string Front(string text)
         {

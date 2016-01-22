@@ -108,7 +108,7 @@ namespace AutoTest.helpers
 
             ServicePointManager.DefaultConnectionLimit = ParametersInit.ThreadCount;
             ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-            HttpInfo = new HttpInfo(ParametersInit.TimeMax * 1000)
+            HttpInfo = new HttpInfo(ParametersInit.WebDriverTimeOut * 1000)
             {
                 BaseAddress = baseAddress
             };
@@ -137,7 +137,7 @@ namespace AutoTest.helpers
 
                 var task = Task.Run(() => ExecuteThread(url) );
 
-                while (!task.IsCompleted && time.Elapsed.TotalSeconds < ParametersInit.TimeMax)
+                while (!task.IsCompleted && time.Elapsed.TotalSeconds < ParametersInit.WebDriverTimeOut)
                     _sel.TouchWebDriver();
 
                 if (time.Elapsed.TotalSeconds > 30)
@@ -167,7 +167,7 @@ namespace AutoTest.helpers
                     FailedPostCommands(funcName + ": " + error, ex);
                 }
 
-                if (time.Elapsed.TotalSeconds > ParametersInit.TimeMax)
+                if (time.Elapsed.TotalSeconds > ParametersInit.WebDriverTimeOut)
                     FailedPostCommands("Время выполнения операции Post истекло: " + funcName);
             }
             else

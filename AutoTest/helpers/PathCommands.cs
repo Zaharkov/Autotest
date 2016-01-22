@@ -106,7 +106,7 @@ namespace AutoTest.helpers
         {
             _taskForShareAndCopy = Task.Run(() =>
             {
-                _sharedFolder = "\\\\" + GetIp4Address() + "\\Files\\";
+                _sharedFolder = "\\\\" + Environment.MachineName + "\\Files\\";
 
                 if (!Directory.Exists(_sharedFolder))
                 {
@@ -136,22 +136,6 @@ namespace AutoTest.helpers
                 process.Start();
                 process.WaitForExit();
             });
-        }
-
-        private static string GetIp4Address()
-        {
-            var ip4Address = String.Empty;
-
-            foreach (var ipa in Dns.GetHostAddresses(Dns.GetHostName()))
-            {
-                if (ipa.AddressFamily == AddressFamily.InterNetwork)
-                {
-                    ip4Address = ipa.ToString();
-                    break;
-                }
-            }
-
-            return ip4Address;
         }
 
         private static void WaitForShare()

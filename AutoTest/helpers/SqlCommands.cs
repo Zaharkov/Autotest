@@ -25,9 +25,11 @@ namespace AutoTest.helpers
         private readonly SeleniumCommands _sel;
         private readonly string _connetionString = 
                 "Data Source=" + ParametersInit.SqlServer + ";" +
-                "User ID=" + ParametersInit.SqlUser + ";" +
-                "Password=" + ParametersInit.SqlPass + ";" +
-                "Connection Timeout=" + ParametersInit.TimeMax + ";" +
+                (ParametersInit.SqlWindowsAuth 
+                    ? "Integrated Security=SSPI;" 
+                    : "User ID=" + ParametersInit.SqlUser + ";" + 
+                      "Password=" + ParametersInit.SqlPass + ";") +
+                "Connection Timeout=" + ParametersInit.WebDriverTimeOut + ";" +
                 "MultipleActiveResultSets=true;";
 
         /// <summary>
@@ -58,7 +60,7 @@ namespace AutoTest.helpers
                 {
                     sqlCommand.Connection = cnn;
                     sqlCommand.Transaction = tran;
-                    sqlCommand.CommandTimeout = ParametersInit.TimeMax;
+                    sqlCommand.CommandTimeout = ParametersInit.WebDriverTimeOut;
                     var result = new Dictionary<int, Dictionary<string, string>>();
 
                     try
@@ -70,14 +72,14 @@ namespace AutoTest.helpers
 
                         if (_sel != null && !notSel)
                         {
-                            while (!task.IsCompleted && time.Elapsed.TotalSeconds < ParametersInit.TimeMax)
+                            while (!task.IsCompleted && time.Elapsed.TotalSeconds < ParametersInit.WebDriverTimeOut)
                                 _sel.TouchWebDriver();
 
-                            if (time.Elapsed.TotalSeconds > ParametersInit.TimeJ)
-                                _sel.BackTrace("SQL запрос " + id + " длился более " + ParametersInit.TimeJ + " секунд",
+                            if (time.Elapsed.TotalSeconds > ParametersInit.AjaxTimeOut)
+                                _sel.BackTrace("SQL запрос " + id + " длился более " + ParametersInit.AjaxTimeOut + " секунд",
                                     ErrorType.Timed | ErrorType.Bug);
 
-                            if (time.Elapsed.TotalSeconds > ParametersInit.TimeMax)
+                            if (time.Elapsed.TotalSeconds > ParametersInit.WebDriverTimeOut)
                                 throw FailingSqlCommands("Время выполнения операции Sql истекло");
 
                             //if (task.Result.RecordsAffected != 0)

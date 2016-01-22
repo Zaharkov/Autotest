@@ -25,15 +25,15 @@ namespace AutoTest.helpers
         /// <summary>
         /// Пользователь, от имени которого выполнять команды
         /// </summary>
-        private static readonly string User = ParametersInit.GetAppConfig("User");
+        private static readonly string User = ParametersInit.GetLocalConfigValue("User");
         /// <summary>
         /// Пароль пользователя
         /// </summary>
-        private static readonly string Pass = ParametersInit.GetAppConfig("Pass");
+        private static readonly string Pass = ParametersInit.GetLocalConfigValue("Pass");
         /// <summary>
         /// Домен в котором находится пользователь
         /// </summary>
-        private static readonly string Domain = ParametersInit.GetAppConfig("Domain");
+        private static readonly string Domain = ParametersInit.GetLocalConfigValue("Domain");
         private static readonly string DomainAndUser = Domain + "\\" + User;
         /// <summary>
         /// Дефолтный порт для WsMan
@@ -111,8 +111,8 @@ namespace AutoTest.helpers
             //    cmd = "invoke-command {" + cmd + "}";
             //else
             //{
-            //    cmd = "$password = ConvertTo-SecureString \"" + ParametersInit.GetAppConfig("Pass") + "\" -AsPlainText -Force; " +
-            //          "$credential = New-Object System.Management.Automation.PsCredential(\"" + ParametersInit.GetAppConfig("Domain") + "\\" + ParametersInit.GetAppConfig("User") + "\", $password); " +
+            //    cmd = "$password = ConvertTo-SecureString \"" + ParametersInit.GetLocalConfigValue("Pass") + "\" -AsPlainText -Force; " +
+            //          "$credential = New-Object System.Management.Automation.PsCredential(\"" + ParametersInit.GetLocalConfigValue("Domain") + "\\" + ParametersInit.GetLocalConfigValue("User") + "\", $password); " +
             //          "$session = New-PSSession -authentication credssp -credential $credential -computerName " + host + ";" +
             //          "invoke-command -session $session {" + cmd + "};" +
             //          "Remove-PSSession -session $session;";
@@ -647,7 +647,7 @@ namespace AutoTest.helpers
                 Exception ex = null;
                 var sw = Stopwatch.StartNew();
                 var notSuccessful = true;
-                while (notSuccessful && sw.Elapsed.TotalSeconds < ParametersInit.TimeMax * 5)
+                while (notSuccessful && sw.Elapsed.TotalSeconds < ParametersInit.WebDriverTimeOut * 5)
                 {
                     try
                     {

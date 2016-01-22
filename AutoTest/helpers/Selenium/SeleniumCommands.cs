@@ -119,7 +119,7 @@ namespace AutoTest.helpers
                     try
                     {
                         var url = new Uri("http://" + ParamInit.Host + ":" + ParamInit.Port + "/wd/hub");
-                        var time = new TimeSpan(0, 0, ParametersInit.TimeMax);
+                        var time = new TimeSpan(0, 0, ParametersInit.WebDriverTimeOut);
 
                         if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings.Get("Reuse")) && !ParamInit.Parallel)
                         {
@@ -167,8 +167,8 @@ namespace AutoTest.helpers
                     _driver = new FirefoxDriver(PrepareCapabilities());
                 }
 
-                _driver.Manage().Timeouts().SetScriptTimeout(new TimeSpan(0, 0, ParametersInit.TimeJ));
-                _driver.Manage().Timeouts().SetPageLoadTimeout(new TimeSpan(0, 0, ParametersInit.TimeMax));
+                _driver.Manage().Timeouts().SetScriptTimeout(new TimeSpan(0, 0, ParametersInit.AjaxTimeOut));
+                _driver.Manage().Timeouts().SetPageLoadTimeout(new TimeSpan(0, 0, ParametersInit.WebDriverTimeOut));
                 _driver.Manage().Window.Maximize();
             }
             else
@@ -675,7 +675,7 @@ namespace AutoTest.helpers
                 AddErrorFromCatch(e);
 
                 if (ParamInit.RemoteWd)
-                    Thread.Sleep(ParametersInit.TimeMax * 1000 + 1);
+                    Thread.Sleep(ParametersInit.WebDriverTimeOut * 1000 + 1);
             }
 
             _element = null;
@@ -717,8 +717,8 @@ namespace AutoTest.helpers
         /// <param name="time">Время ожидания</param>
         private void WaitForAjax(int time = 0)
         {
-            if (time < ParametersInit.TimeJ)
-                time = ParametersInit.TimeJ;
+            if (time < ParametersInit.AjaxTimeOut)
+                time = ParametersInit.AjaxTimeOut;
 
             var getTime = new Stopwatch();
             getTime.Start();
@@ -749,13 +749,13 @@ namespace AutoTest.helpers
            
             _sessionParam.Ajax = returnAjax;
 
-            if (getTime.Elapsed.TotalSeconds > ParametersInit.TimeBug)
-                BackTrace("Внимание! Загрузка страницы превысила " + ParametersInit.TimeBug + " секунд : " + getTime.Elapsed.TotalSeconds
+            if (getTime.Elapsed.TotalSeconds > ParametersInit.TimeOutForLog)
+                BackTrace("Внимание! Загрузка страницы превысила " + ParametersInit.TimeOutForLog + " секунд : " + getTime.Elapsed.TotalSeconds
                     + " (" + _sessionParam.Ajax + ")", ErrorType.Timed);
             else if (_sessionParam.Ajax > 0 && _sessionParam.Ajax != oldAjax)
                 BackTrace("Повисший Ajax (" + _sessionParam.Ajax + ")", ErrorType.Timed);
 
-            if (getTime.Elapsed.TotalSeconds > (time > ParametersInit.TimeMax ? time : ParametersInit.TimeMax))
+            if (getTime.Elapsed.TotalSeconds > (time > ParametersInit.WebDriverTimeOut ? time : ParametersInit.WebDriverTimeOut))
                 FailingTest("Слишком долго грузится страница", null, true);
         }
 
@@ -946,7 +946,7 @@ namespace AutoTest.helpers
                 link = el.Link;
             }
             else
-                element = GetElement(link, ParametersInit.Time);
+                element = GetElement(link, ParametersInit.FindElementTimeOut);
 
             if (element == null)
             {
@@ -1121,7 +1121,7 @@ namespace AutoTest.helpers
         {
             try
             {
-                if (DateTime.Now.Subtract(_sessionParam.LastGetElement).TotalSeconds * 4 > ParametersInit.TimeMax)
+                if (DateTime.Now.Subtract(_sessionParam.LastGetElement).TotalSeconds * 4 > ParametersInit.WebDriverTimeOut)
                 {
                     TouchMySelf();
                     _sessionParam.LastGetElement = DateTime.Now;
@@ -1667,7 +1667,7 @@ namespace AutoTest.helpers
 
             var filePath = Encoding.Default.GetString(Encoding.Convert(Encoding.UTF8, Encoding.Default, Encoding.UTF8.GetBytes(way + filename)));
 
-            time = time < ParametersInit.TimeJ ? ParametersInit.TimeJ : time;
+            time = time < ParametersInit.AjaxTimeOut ? ParametersInit.AjaxTimeOut : time;
 
             var i = new Stopwatch();
             i.Start();
@@ -2935,7 +2935,7 @@ namespace AutoTest.helpers
             {
                 windowsNew = _driver.WindowHandles;
             }
-            while (windowsNew.Count == windowsOld.Count && time.Elapsed.TotalSeconds < ParametersInit.Time);
+            while (windowsNew.Count == windowsOld.Count && time.Elapsed.TotalSeconds < ParametersInit.FindElementTimeOut);
 
             var newWindow = windowsNew.ToArray().Except(windowsOld).ToArray();
 
@@ -3058,7 +3058,7 @@ namespace AutoTest.helpers
             {
                 windowsNew = _driver.WindowHandles;
             }
-            while (windowsNew.Count == windowsOld.Count && time.Elapsed.TotalSeconds < ParametersInit.Time);
+            while (windowsNew.Count == windowsOld.Count && time.Elapsed.TotalSeconds < ParametersInit.FindElementTimeOut);
 
             var newWindow = windowsNew.ToArray().Except(windowsOld).ToArray();
 

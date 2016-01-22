@@ -764,7 +764,7 @@ namespace AutoTest.helpers
                 .Append(exception > 0 ? Environment.NewLine + "Ексепшенов: " + exception : "")
                 .Append(typo > 0 ? Environment.NewLine + "Мелких ошибок (не приводящие к падению): " + typo : "")
                 .Append(bug > 0 ? Environment.NewLine + "BUG: " + bug : "")
-                .Append(timed > 0 ? Environment.NewLine + "Загрузка страницы превысила " + ParametersInit.TimeBug + " сек: " + timed : "")
+                .Append(timed > 0 ? Environment.NewLine + "Загрузка страницы превысила " + ParametersInit.TimeOutForLog + " сек: " + timed : "")
                 .Append(screen > 0 ? Environment.NewLine + "Не смогло сделать скрин: " + screen : "")
                 .Append(testFunc > 0 ? Environment.NewLine + "Ошибки связанные с функционалом тестирования: " + testFunc : "")
                 .Append(Environment.NewLine + "Время прохождения тестов: " + SWatch.Elapsed.Hours + ":" + SWatch.Elapsed.Minutes + ":" + SWatch.Elapsed.Seconds);
