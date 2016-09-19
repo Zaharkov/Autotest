@@ -36,7 +36,7 @@ namespace AutoTest.helpers.Parameters
             SqlUser = GetLocalConfigValue("SqlUser", true);
             SqlPass = GetLocalConfigValue("SqlPass", true);
             var sqlWindowsAuth = GetLocalConfigValue("SqlWindowsAuth", true);
-            SqlWindowsAuth = sqlWindowsAuth != null && bool.Parse(sqlWindowsAuth);
+            SqlWindowsAuth = !string.IsNullOrEmpty(sqlWindowsAuth) && bool.Parse(sqlWindowsAuth);
 
             SpreadSheetName = GetAppConfigValue("SpreadSheetName", true);
             var workSheetName = GetAppConfigValue("WorkSheetName", true);
